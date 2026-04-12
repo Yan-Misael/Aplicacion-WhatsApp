@@ -6,6 +6,7 @@ import java.util.Map;
 
 
 /**
+ * [Singleton]
  * Gestor de estado concurrente para las sesiones activas del servidor.
  * <p>
  * Centraliza y protege el acceso al mapa de enrutamiento de clientes. Emplea un

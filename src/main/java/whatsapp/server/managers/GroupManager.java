@@ -8,6 +8,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
+ * [Singleton]
  * Gestor transaccional para la administración y enrutamiento de salas de chat grupales.
  * <p>
  * Implementa un mecanismo de segmentación de bloqueos (Read-Write Lock) para optimizar 
