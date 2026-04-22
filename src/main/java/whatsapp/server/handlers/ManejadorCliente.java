@@ -2,6 +2,9 @@ package whatsapp.server.handlers;
 
 import whatsapp.common.models.PaqueteRed;
 import whatsapp.common.models.PaqueteMensaje;
+import whatsapp.common.models.PaqueteLogin;
+import whatsapp.common.models.PaqueteConfirm;
+import whatsapp.common.models.PaqueteError;
 import whatsapp.server.managers.SessionManager;
 import whatsapp.server.managers.GroupManager;
 
@@ -64,12 +67,39 @@ public class ManejadorCliente extends Thread {
      */
     private void procesarPaquete(PaqueteRed paquete) {
         // Enrutamiento de lógica según el tipo de polimorfismo del mensaje
-        if (paquete instanceof PaqueteMensaje) {
-            PaqueteMensaje msj = (PaqueteMensaje) paquete;
-            System.out.println("Enrutando mensaje de " + msj.getIdRemitente() + " hacia " + msj.getIdDestinatario());
-            // (idk quien seas pero aquí iría lo tuyo b_s)
-            // Aquí iría la lógica de utilizar el sessionManager para buscar el socket destino 
-            // y hacer outDestino.writeObject(msj);
+        // primero login
+        if (paquete instanceof PaqueteLogin) {
+            PaqueteLogin login = (PaqueteLogin) paquete;
+            String userId = login.getIdRemitente(); //puede ser el servidors
+            boolean registrado = sessionManager.registrarUsuario(userId, this);
+            if (registrado) {
+                this.idUsuarioAsignado = userId;
+                try {
+                    enviarObjeto(new PaqueteConfirm(userId, true, "Login con éxito"));
+                } catch (IOException e) {
+                    liberarRecursos();
+                }
+                System.out.println("Usuario " + userId + "autenticado");
+            } else {
+                try {
+                    enviarObjeto(new PaqueteError(userId, "El id ya está en uso"));
+                } catch (IOException e) {}
+                liberarRecursos();
+            }
+        }
+        
+        else if (paquete instanceof PaqueteMensaje) {
+            if (idUsuarioAsignado == null) {
+                try {
+                    enviarObjeto(new PaqueteError("desconocido", "debe autenticarse"));
+                } catch (IOException e) {}
+                return;
+            }
+            PaqueteMensaje msg = (PaqueteMensaje) paquete;
+            if(msg.isEsGrupo()) {
+                List<String> miembros = groupManager.obtenerCopiaMiembros(msg.getIdDestinatario());
+                for
+            }
         }
     }
     
