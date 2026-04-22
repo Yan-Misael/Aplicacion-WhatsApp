@@ -5,6 +5,8 @@ import whatsapp.common.models.PaqueteMensaje;
 import whatsapp.common.models.PaqueteLogin;
 import whatsapp.common.models.PaqueteConfirm;
 import whatsapp.common.models.PaqueteError;
+import whatsapp.common.models.PaqueteCrearGrupo;
+import whatsapp.common.models.PaqueteLogout;
 import whatsapp.server.managers.SessionManager;
 import whatsapp.server.managers.GroupManager;
 
@@ -12,6 +14,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.List;
 
 /**
  * Clse que maneja y comprende la lógica interna de conexión del cliente.
@@ -48,7 +51,7 @@ public class ManejadorCliente extends Thread {
                 Object peticion = in.readObject();
                 
                 if (peticion instanceof PaqueteRed) {
-                    liberarRecursos();
+                    procesarPaquete((PaqueteRed) peticion);
                 }
             }
             
@@ -98,8 +101,60 @@ public class ManejadorCliente extends Thread {
             PaqueteMensaje msg = (PaqueteMensaje) paquete;
             if(msg.isEsGrupo()) {
                 List<String> miembros = groupManager.obtenerCopiaMiembros(msg.getIdDestinatario());
-                for
+                for (String miembro : miembros) {
+                    if (miembro.equals(msg.getIdRemitente())) continue;
+                    ManejadorCliente manejador = sessionManager.obtenerSesion(miembro);
+                    if (manejador != null) {
+                        try {
+                            manejador.enviarObjeto(msg);
+                        } catch (IOException e) {
+                            System.err.println("No se pudo enviar msg grupal a " + miembro); //en caso de q falle un miembro :p
+                        }
+                    }
+                }
+            } else {
+                //aqui va el chat priv
+                ManejadorCliente destinatario = sessionManager.obtenerSesion(msg.getIdDestinatario());
+                if (destinatario != null) {
+                    try {
+                        destinatario.enviarObjeto(msg);
+                    } catch (IOException e) {
+                        try {
+                            enviarObjeto(new PaqueteError(idUsuarioAsignado, "El usuario x no recibió el msg"));
+                        } catch (IOException ex) {}
+                    }
+                } else {
+                    try {
+                        enviarObjeto(new PaqueteError(idUsuarioAsignado, "Usuario " + msg.getIdDestinatario() + " no esta conectado"));
+                    } catch (IOException e) {}
+                }
             }
+        }
+        else if (paquete instanceof PaqueteCrearGrupo) {
+            if (idUsuarioAsignado == null) {
+                try {
+                    enviarObjeto(new PaqueteError("desconocido", "no autenticado")); 
+                } catch (IOException e) {}
+                return;
+            }
+            PaqueteCrearGrupo crear = (PaqueteCrearGrupo) paquete;
+            groupManager.registrarGrupo(crear.getIdGrupo(), crear.getIdRemitente());
+            try {
+                enviarObjeto(new PaqueteConfirm(idUsuarioAsignado, true, "Grupo " + crear.getIdGrupo() + " creado"));
+            } catch (IOException e) {
+                liberarRecursos();
+            }
+        }
+        // paquetelogout
+        else if (paquete instanceof PaqueteLogout) {
+            System.out.println("Usuario " + idUsuarioAsignado + " cerró sesión");
+            liberarRecursos();
+        }
+        // en caso de q no lo reconozca
+        else {
+            try {
+                enviarObjeto(new PaqueteError(idUsuarioAsignado != null ? idUsuarioAsignado : "desconocido", "no soportado"));
+            } catch (IOException e) {}
         }
     }
     
