@@ -26,19 +26,16 @@ note right of GM
   Devuelve new ArrayList<>(miembros).
 end note
 
-loop por cada miembro ≠ E
+loop por cada miembro ≠ E  (ej: M1, M2)
     MCE -> SM : obtenerSesion(miembro)
     alt miembro conectado
         SM  --> MCE  : ManejadorCliente del miembro
-        MCE ->  MCM1 : enviarObjeto(PaqueteMensaje)
-        MCM1 -->     : entrega a cliente M1
+        MCE ->  MCM1 : enviarObjeto(PaqueteMensaje)\n[ej: entrega a M1 ó M2]
+        MCM1 -->     : entrega a cliente
     else miembro desconectado
-        SM  --> MCE  : null / IOException
+        SM  --> MCE  : null
         MCE ->  MCE  : omisión silenciosa\n(System.err — emisor NO notificado)
     end
 end
-
-MCE -> MCM2 : enviarObjeto(PaqueteMensaje)
-MCM2 -->    : entrega a cliente M2
 
 @enduml

@@ -11,15 +11,15 @@ skinparam NodeBorderColor #888888
 ' NODOS CLIENTE
 ' ─────────────────────────────────────────
 node "Máquina Cliente A\n(JVM — cliente)" as CA #EAF4FF {
-    component "ClienteConsola\n(por implementar)" as clienteA
+    component "ClienteNodo\n(consola)" as clienteA
 }
 
 node "Máquina Cliente B\n(JVM — cliente)" as CB #EAF4FF {
-    component "ClienteConsola\n(por implementar)" as clienteB
+    component "ClienteNodo\n(consola)" as clienteB
 }
 
 node "Máquina Cliente N\n(JVM — cliente)" as CN #EAF4FF {
-    component "ClienteConsola\n(por implementar)" as clienteN
+    component "ClienteNodo\n(consola)" as clienteN
 }
 
 ' ─────────────────────────────────────────

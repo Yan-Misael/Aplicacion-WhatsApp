@@ -103,7 +103,7 @@ package "whatsapp.server.managers" #FFF8EA {
 
     class GroupManager {
         - gruposActivos : Map<String, List<String>> {final}
-        - rwLock : ReentrantReadWriteLock {final}
+        - rwLock : ReadWriteLock {final}
         --
         + GroupManager()
         + registrarGrupo(idGrupo : String, idCreador : String) : void
@@ -130,6 +130,8 @@ package "whatsapp.server.handlers" #F0FFF0 {
         + run() : void
         - procesarPaquete(paquete : PaqueteRed) : void
         + enviarObjeto(paquete : PaqueteRed) : void
+        - procesarMensajePrivado(msg : PaqueteMensaje) : void
+        - procesarMensajeGrupal(msg : PaqueteMensaje) : void
         - liberarRecursos() : void
         --
         note: Extiende Thread.\nUn hilo por cliente conectado.
@@ -151,6 +153,28 @@ package "whatsapp.server.core" #FFF0F0 {
 }
 
 ' ─────────────────────────────────────────
+' PAQUETE: client
+' ─────────────────────────────────────────
+package "whatsapp.client" #F5F0FF {
+
+    class ClienteNodo {
+        - HOST : String {static} = "localhost"
+        - PUERTO : int {static} = 5000
+        - socket : Socket
+        - out : ObjectOutputStream
+        - in : ObjectInputStream
+        - miId : String
+        --
+        + main(args : String[]) {static}
+        + iniciar() : void
+        - procesarComandos(scanner : Scanner) : void
+        - escucharServidor() : void
+        --
+        note: Implementación de consola funcional.\nDos hilos: escucha de red (daemon)\ny lectura de comandos del usuario.
+    }
+}
+
+' ─────────────────────────────────────────
 ' RELACIONES ENTRE PAQUETES
 ' ─────────────────────────────────────────
 ServidorPrincipal ..> ManejadorCliente : <<crea>>
@@ -161,5 +185,7 @@ ManejadorCliente --> SessionManager : usa (DI)
 ManejadorCliente --> GroupManager   : usa (DI)
 ManejadorCliente ..> PaqueteRed     : deserializa / envía
 SessionManager   --> ManejadorCliente : almacena referencia
+
+ClienteNodo ..> PaqueteRed : serializa / recibe
 
 @enduml
