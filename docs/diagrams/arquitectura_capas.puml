@@ -1,0 +1,65 @@
+@startuml ArquitecturaCapas
+title Modelo Arquitectónico — Capas del Sistema
+
+top to bottom direction
+
+skinparam defaultFontSize 12
+skinparam rectangleFontSize 12
+skinparam rectangleBorderColor #555555
+skinparam rectangleBorderThickness 1.5
+skinparam ArrowColor #333333
+skinparam ArrowFontSize 10
+skinparam shadowing false
+
+' ─────────────────────────────────────────────────────────
+' COLUMNA PRINCIPAL: flujo de comunicación (izquierda)
+' ─────────────────────────────────────────────────────────
+
+rectangle "<b>CAPA 1 — Presentación (Cliente)</b>\nClienteConsola / GUI  |  <i>whatsapp.client</i>  |  <color:#999>[por implementar]</color>" as C1 #DDEEFF
+rectangle "<b>CAPA 2 — Datos  (DTOs de Red)</b>\nPaqueteRed · PaqueteLogin · PaqueteLogout · PaqueteMensaje\nPaqueteCrearGrupo · PaqueteConfirm · PaqueteError\n<i>whatsapp.common.models</i>" as C2 #FFE8C0
+rectangle "<b>CAPA 4 — Red  (Handlers)</b>\nManejadorCliente  [Thread por cliente]  |  ObjectInputStream / ObjectOutputStream\n<i>whatsapp.server.handlers</i>" as C4 #F5E6FF
+rectangle "<b>CAPA 3 — Lógica  (Estado Global)</b>\nSessionManager  [Monitor Lock — synchronized]\nGroupManager  [ReentrantReadWriteLock + copias defensivas]\n<i>whatsapp.server.managers</i>" as C3 #D6F5D6
+
+' ─────────────────────────────────────────────────────────
+' CAPA 5 al costado derecho (bootstrapper)
+' ─────────────────────────────────────────────────────────
+
+rectangle "<b>CAPA 5 — Núcleo (Core)</b>\nServidorPrincipal\nServerSocket(5000)\nInstancia Singletons\nInyección de Dependencias\n<i>whatsapp.server.core</i>" as C5 #FFE0E0
+
+' ─────────────────────────────────────────────────────────
+' FLUJO DE COMUNICACIÓN (columna principal, top → bottom)
+' ─────────────────────────────────────────────────────────
+
+C1 -down-> C2 : serializa DTOs\n(Marshalling Java)
+C2 -down-> C4 : paquetes por\nsocket TCP
+C4 -down-> C3 : consulta /\nactualiza estado
+
+' ─────────────────────────────────────────────────────────
+' RELACIONES DE INICIALIZACIÓN (Core → capas del servidor)
+' ─────────────────────────────────────────────────────────
+
+C5 -left-> C4 : crea hilo por\ncliente
+C5 -left-> C3 : inicializa\nSingletons
+
+' ─────────────────────────────────────────────────────────
+' NOTAS
+' ─────────────────────────────────────────────────────────
+
+note right of C2
+  Patrón DTO — campos final (inmutables).
+  Polimorfismo en red via instanceof.
+end note
+
+note right of C3
+  Patrón Monitor (SessionManager).
+  Patrón Read-Write Lock (GroupManager).
+  Principios SRP y DIP.
+end note
+
+note right of C5
+  Único punto de arranque.
+  Aplica OCP: nuevos PaqueteRed
+  sin modificar el núcleo.
+end note
+
+@enduml

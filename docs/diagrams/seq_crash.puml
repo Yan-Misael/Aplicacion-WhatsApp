@@ -1,0 +1,31 @@
+@startuml seq_crash
+title Flujo 4 — Desconexión Abrupta (Crash Fault)
+
+skinparam sequenceArrowThickness 1.5
+skinparam sequenceParticipantBorderColor #666666
+skinparam sequenceLifeLineBorderColor #AAAAAA
+skinparam defaultFontSize 12
+skinparam shadowing false
+
+participant "ManejadorCliente\n:Thread" as MC
+participant "SessionManager"           as SM
+participant "Socket"                   as SOC
+
+note over MC : Cliente cierra la app sin logout.\nTCP RST/FIN llega al servidor.
+
+MC  ->  SOC : in.readObject()  [bloqueante]
+SOC --> MC  : IOException  (EOFException / SocketException)
+
+MC  ->  MC  : catch — "[Alerta] Cliente desconectado"
+MC  ->  MC  : finally → liberarRecursos()
+MC  ->  SM  : removerUsuario(idUsuarioAsignado)
+SM  --> MC  : sesión eliminada
+MC  ->  SOC : socket.close()
+
+note right of MC #E8FFE8
+  Recuperación: hilo termina limpiamente.
+  El resto del servidor no se afecta.
+  Aislamiento por Thread-per-connection.
+end note
+
+@enduml

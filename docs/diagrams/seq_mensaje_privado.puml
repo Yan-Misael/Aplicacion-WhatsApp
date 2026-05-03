@@ -1,0 +1,39 @@
+@startuml seq_mensaje_privado
+title Flujo 2 — Mensaje Privado
+
+skinparam sequenceArrowThickness 1.5
+skinparam sequenceParticipantBorderColor #666666
+skinparam sequenceLifeLineBorderColor #AAAAAA
+skinparam defaultFontSize 12
+skinparam shadowing false
+
+actor       "Usuario A"    as UA
+participant "Cliente A"    as CLIA
+participant "ManejadorCliente A" as MCA
+participant "SessionManager"    as SM
+participant "ManejadorCliente B" as MCB
+participant "Cliente B"    as CLIB
+actor       "Usuario B"    as UB
+
+UA   ->  CLIA : enviar mensaje a B
+CLIA ->  MCA  : PaqueteMensaje(de=A, para=B, esGrupo=false)
+MCA  ->  SM   : obtenerSesion("B")
+
+alt B conectado
+    SM  --> MCA  : ManejadorCliente B
+    MCA ->  MCB  : enviarObjeto(PaqueteMensaje)
+    MCB --> CLIB : entrega mensaje
+    CLIB --> UB  : muestra mensaje de A
+else B offline
+    SM  --> MCA  : null
+    MCA --> CLIA : PaqueteError — "Usuario B no está conectado"
+    CLIA --> UA  : muestra error de entrega
+end
+
+note over MCA, MCB
+  Condición de carrera: B puede desconectarse
+  entre obtenerSesion() y enviarObjeto().
+  IOException capturada en catch interno.
+end note
+
+@enduml

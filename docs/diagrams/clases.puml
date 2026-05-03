@@ -1,0 +1,165 @@
+@startuml DiagramaClases
+title Diagrama de Clases — Aplicación WhatsApp Distribuida
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 13
+skinparam packageFontSize 13
+skinparam ArrowColor #444444
+skinparam ClassBackgroundColor #FEFEFE
+skinparam ClassBorderColor #888888
+
+' ─────────────────────────────────────────
+' PAQUETE: common/models  (DTOs de red)
+' ─────────────────────────────────────────
+package "whatsapp.common.models" #EAF4FF {
+
+    abstract class PaqueteRed {
+        - {final} idRemitente : String
+        --
+        # PaqueteRed(idRemitente : String)
+        + getIdRemitente() : String
+    }
+
+    class PaqueteLogin {
+        - serialVersionUID : long {static}
+        --
+        + PaqueteLogin(userId : String)
+    }
+
+    class PaqueteLogout {
+        - serialVersionUID : long {static}
+        --
+        + PaqueteLogout(userId : String)
+    }
+
+    class PaqueteMensaje {
+        - serialVersionUID : long {static}
+        - {final} idDestinatario : String
+        - {final} contenido : String
+        - {final} esGrupo : boolean
+        --
+        + PaqueteMensaje(remitente, destinatario, contenido, esGrupo)
+        + getIdDestinatario() : String
+        + getContenido() : String
+        + isEsGrupo() : boolean
+    }
+
+    class PaqueteCrearGrupo {
+        - serialVersionUID : long {static}
+        - {final} idGrupo : String
+        --
+        + PaqueteCrearGrupo(idCreador : String, idGrupo : String)
+        + getIdGrupo() : String
+    }
+
+    class PaqueteConfirm {
+        - serialVersionUID : long {static}
+        - {final} exito : boolean
+        - {final} mensaje : String
+        --
+        + PaqueteConfirm(destinatario, exito, mensaje)
+        + isExito() : boolean
+        + getMensaje() : String
+    }
+
+    class PaqueteError {
+        - serialVersionUID : long {static}
+        - {final} razon : String
+        --
+        + PaqueteError(userId : String, razon : String)
+        + getRazon() : String
+    }
+
+    PaqueteRed <|-- PaqueteLogin
+    PaqueteRed <|-- PaqueteLogout
+    PaqueteRed <|-- PaqueteMensaje
+    PaqueteRed <|-- PaqueteCrearGrupo
+    PaqueteRed <|-- PaqueteConfirm
+    PaqueteRed <|-- PaqueteError
+
+    note top of PaqueteRed
+        Implementa java.io.Serializable.
+        Todos los campos son final (inmutables).
+        Permite marshalling nativo sobre ObjectStream.
+    end note
+}
+
+' ─────────────────────────────────────────
+' PAQUETE: server/managers
+' ─────────────────────────────────────────
+package "whatsapp.server.managers" #FFF8EA {
+
+    class SessionManager {
+        - sesionesActivas : Map<String, ManejadorCliente> {final}
+        - monitorLock : Object {final}
+        --
+        + SessionManager()
+        + registrarUsuario(idUsuario : String, manejador : ManejadorCliente) : boolean
+        + removerUsuario(idUsuario : String) : void
+        + obtenerSesion(idUsuario : String) : ManejadorCliente
+        --
+        note: Patrón Monitor — synchronized(monitorLock)
+    }
+
+    class GroupManager {
+        - gruposActivos : Map<String, List<String>> {final}
+        - rwLock : ReentrantReadWriteLock {final}
+        --
+        + GroupManager()
+        + registrarGrupo(idGrupo : String, idCreador : String) : void
+        + obtenerCopiaMiembros(idGrupo : String) : List<String>
+        --
+        note: Patrón Read-Write Lock\nCopias defensivas en lectura
+    }
+}
+
+' ─────────────────────────────────────────
+' PAQUETE: server/handlers
+' ─────────────────────────────────────────
+package "whatsapp.server.handlers" #F0FFF0 {
+
+    class ManejadorCliente {
+        - socket : Socket {final}
+        - sessionManager : SessionManager {final}
+        - groupManager : GroupManager {final}
+        - out : ObjectOutputStream
+        - in : ObjectInputStream
+        - idUsuarioAsignado : String
+        --
+        + ManejadorCliente(socket, sessionManager, groupManager)
+        + run() : void
+        - procesarPaquete(paquete : PaqueteRed) : void
+        + enviarObjeto(paquete : PaqueteRed) : void
+        - liberarRecursos() : void
+        --
+        note: Extiende Thread.\nUn hilo por cliente conectado.
+    }
+}
+
+' ─────────────────────────────────────────
+' PAQUETE: server/core
+' ─────────────────────────────────────────
+package "whatsapp.server.core" #FFF0F0 {
+
+    class ServidorPrincipal {
+        - PUERTO : int {static} = 5000
+        --
+        + main(args : String[]) {static}
+        --
+        note: Escucha en ServerSocket(5000).\nInstancia Singletons e inyecta\ndependencias en ManejadorCliente.
+    }
+}
+
+' ─────────────────────────────────────────
+' RELACIONES ENTRE PAQUETES
+' ─────────────────────────────────────────
+ServidorPrincipal ..> ManejadorCliente : <<crea>>
+ServidorPrincipal ..> SessionManager   : <<instancia>>
+ServidorPrincipal ..> GroupManager     : <<instancia>>
+
+ManejadorCliente --> SessionManager : usa (DI)
+ManejadorCliente --> GroupManager   : usa (DI)
+ManejadorCliente ..> PaqueteRed     : deserializa / envía
+SessionManager   --> ManejadorCliente : almacena referencia
+
+@enduml

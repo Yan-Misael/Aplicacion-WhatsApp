@@ -1,0 +1,37 @@
+@startuml seq_login
+title Flujo 1 — Login de Usuario
+
+skinparam sequenceArrowThickness 1.5
+skinparam sequenceParticipantBorderColor #666666
+skinparam sequenceLifeLineBorderColor #AAAAAA
+skinparam sequenceBoxBorderColor #888888
+skinparam defaultFontSize 12
+skinparam shadowing false
+
+actor       "Usuario"       as U
+participant "Cliente"       as CLI
+participant "ManejadorCliente" as MC
+participant "SessionManager"  as SM
+
+U    ->  CLI : ingresa userId
+CLI  ->  MC  : PaqueteLogin(userId)
+MC   ->  SM  : registrarUsuario(userId, this)
+
+alt userId disponible
+    SM  --> MC  : true
+    MC  --> CLI : PaqueteConfirm — "Login con éxito"
+    CLI --> U   : muestra "Conectado como [userId]"
+else userId ya en uso
+    SM  --> MC  : false
+    MC  --> CLI : PaqueteError — "El id ya está en uso"
+    CLI --> U   : muestra error
+    MC  ->  MC  : liberarRecursos()
+end
+
+note over SM
+  synchronized(monitorLock)
+  Comprobación + inserción atómica.
+  Evita colisión de IDs concurrentes.
+end note
+
+@enduml

@@ -1,0 +1,78 @@
+@startuml ModeloFisico
+title Modelo Físico — Topología de Red
+
+skinparam NodeFontSize 13
+skinparam ComponentFontSize 12
+skinparam ArrowColor #444444
+skinparam NodeBackgroundColor #F8F8F8
+skinparam NodeBorderColor #888888
+
+' ─────────────────────────────────────────
+' NODOS CLIENTE
+' ─────────────────────────────────────────
+node "Máquina Cliente A\n(JVM — cliente)" as CA #EAF4FF {
+    component "ClienteConsola\n(por implementar)" as clienteA
+}
+
+node "Máquina Cliente B\n(JVM — cliente)" as CB #EAF4FF {
+    component "ClienteConsola\n(por implementar)" as clienteB
+}
+
+node "Máquina Cliente N\n(JVM — cliente)" as CN #EAF4FF {
+    component "ClienteConsola\n(por implementar)" as clienteN
+}
+
+' ─────────────────────────────────────────
+' RED
+' ─────────────────────────────────────────
+cloud "Red TCP/IP\n(sin cifrado — canal inseguro)" as RED #FFFBE0
+
+' ─────────────────────────────────────────
+' NODO SERVIDOR
+' ─────────────────────────────────────────
+node "Máquina Servidor\n(JVM — servidor)" as SRV #F0FFF0 {
+
+    component "ServidorPrincipal\n:ServerSocket(5000)" as SP
+
+    component "ManejadorCliente (Hilo-1)\n:Thread" as H1 #DDEEFF
+    component "ManejadorCliente (Hilo-2)\n:Thread" as H2 #DDEEFF
+    component "ManejadorCliente (Hilo-N)\n:Thread" as HN #DDEEFF
+
+    component "SessionManager\n(Singleton — Monitor Lock)" as SM #FFE8C0
+    component "GroupManager\n(Singleton — RWLock)" as GM #FFE8C0
+
+    SP --> H1 : crea al aceptar\nconexión
+    SP --> H2
+    SP --> HN
+
+    H1 --> SM : registrarUsuario /\nremoverUsuario /\nobtenerSesion
+    H2 --> SM
+    HN --> SM
+    H1 --> GM : registrarGrupo /\nobtenerCopiaMiembros
+    H2 --> GM
+    HN --> GM
+}
+
+' ─────────────────────────────────────────
+' CONEXIONES DE RED
+' ─────────────────────────────────────────
+clienteA --> RED : TCP Socket
+clienteB --> RED : TCP Socket
+clienteN --> RED : TCP Socket
+
+RED --> SP : conexiones entrantes\npuerto 5000
+
+note bottom of RED
+    Canal inseguro: serialización Java nativa
+    sin TLS/SSL. Todo el tráfico en texto plano.
+    Susceptible a sniffing y MITM.
+end note
+
+note right of SRV
+    Arquitectura Broker Centralizada.
+    Los clientes no se conocen entre sí;
+    toda comunicación pasa por el servidor.
+    Un hilo por cliente (Thread-per-connection).
+end note
+
+@enduml
