@@ -51,6 +51,36 @@ public class GroupManager {
     }
 
     /**
+     * Agrega un nuevo miembro a un grupo ya existente.
+     * Si el grupo no existe o el usuario ya es miembro, la operación se ignora.
+     * Requiere writeLock porque modifica la lista de miembros.
+     *
+     * @param idGrupo   ID del grupo al que se quiere unir el usuario.
+     * @param idUsuario ID del usuario que se une.
+     * @return {@code true} si fue agregado con éxito; {@code false} si el grupo
+     *         no existe o el usuario ya era miembro.
+     */
+    public boolean agregarMiembro(String idGrupo, String idUsuario) {
+        rwLock.writeLock().lock();
+        try {
+            List<String> miembros = gruposActivos.get(idGrupo);
+
+            // El grupo debe existir y el usuario no debe estar ya dentro
+            if (miembros == null) {
+                return false; // El grupo no existe
+            }
+            if (miembros.contains(idUsuario)) {
+                return false; // Ya es miembro, no se duplica
+            }
+
+            miembros.add(idUsuario);
+            return true;
+        } finally {
+            rwLock.writeLock().unlock();
+        }
+    }
+
+    /**
      * Devuelve los integrantes actuales de un grupo. 
      * Se entrega un clon de la lista para que el hilo que la reciba pueda iterarla 
      * a su propio ritmo sin bloquear la sala ni arriesgar caídas del sistema (profilaxis de concurrencia).

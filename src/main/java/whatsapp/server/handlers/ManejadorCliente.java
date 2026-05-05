@@ -6,6 +6,7 @@ import whatsapp.common.models.PaqueteLogin;
 import whatsapp.common.models.PaqueteConfirm;
 import whatsapp.common.models.PaqueteError;
 import whatsapp.common.models.PaqueteCrearGrupo;
+import whatsapp.common.models.PaqueteUnirseGrupo;
 import whatsapp.common.models.PaqueteLogout;
 import whatsapp.server.managers.SessionManager;
 import whatsapp.server.managers.GroupManager;
@@ -17,7 +18,7 @@ import java.net.Socket;
 import java.util.List;
 
 /**
- * Clse que maneja y comprende la lógica interna de conexión del cliente.
+ * Clase que maneja y comprende la lógica interna de conexión del cliente.
  * Contiene el canal I/O con un cliente específico. Al estar aislado cada instancia en su propio hilo, 
  * si la lectura del socket se bloquea esperando datos, el resto del servidor sigue intacto.
  */
@@ -107,7 +108,7 @@ public class ManejadorCliente extends Thread {
                 procesarMensajePrivado(msg);
             }
         }
-        // Luego, si se desa un servidor
+        // Luego, si se desea un servidor
         else if (paquete instanceof PaqueteCrearGrupo) {
             if (idUsuarioAsignado == null) {
                 enviarObjeto(new PaqueteError("Servidor", "Debe autenticarse antes de crear grupos."));
@@ -117,6 +118,26 @@ public class ManejadorCliente extends Thread {
             PaqueteCrearGrupo crear = (PaqueteCrearGrupo) paquete;
             groupManager.registrarGrupo(crear.getIdGrupo(), crear.getIdRemitente());
             enviarObjeto(new PaqueteConfirm(idUsuarioAsignado, true, "Grupo '" + crear.getIdGrupo() + "' creado."));
+        }
+
+        // Unirse a un grupo existente
+        else if (paquete instanceof PaqueteUnirseGrupo) {
+            if (idUsuarioAsignado == null) {
+                enviarObjeto(new PaqueteError("Servidor", "Debe autenticarse antes de unirse a un grupo."));
+                return;
+            }
+
+            PaqueteUnirseGrupo unirse = (PaqueteUnirseGrupo) paquete;
+            boolean exito = groupManager.agregarMiembro(unirse.getIdGrupo(), idUsuarioAsignado);
+
+            if (exito) {
+                enviarObjeto(new PaqueteConfirm(idUsuarioAsignado, true,
+                        "Te uniste al grupo '" + unirse.getIdGrupo() + "'."));
+                System.out.println("[Servidor] " + idUsuarioAsignado + " se unió al grupo '" + unirse.getIdGrupo() + "'.");
+            } else {
+                enviarObjeto(new PaqueteError("Servidor",
+                        "No se pudo unir al grupo '" + unirse.getIdGrupo() + "': no existe o ya eres miembro."));
+            }
         }
         
         // Finalmente, para el logout
