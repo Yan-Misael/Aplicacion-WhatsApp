@@ -14,7 +14,7 @@ import java.net.Socket;
  * managers, recordando que son Singletons. También se configura la topología de la red.
 */
 public class ServidorPrincipal {
-    private static final int PUERTO = 5000;
+    private static final int PUERTO = 2346;
     
     public static void main(String[] args) {
         System.out.println("=== Iniciando Servidor Central de WhatsApp ===");
