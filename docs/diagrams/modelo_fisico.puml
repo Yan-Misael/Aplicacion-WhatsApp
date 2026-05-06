@@ -32,7 +32,7 @@ cloud "Red TCP/IP\n(sin cifrado — canal inseguro)" as RED #FFFBE0
 ' ─────────────────────────────────────────
 node "Máquina Servidor\n(JVM — servidor)" as SRV #F0FFF0 {
 
-    component "ServidorPrincipal\n:ServerSocket(5000)" as SP
+    component "ServidorPrincipal\n:ServerSocket(2346)" as SP
 
     component "ManejadorCliente (Hilo-1)\n:Thread" as H1 #DDEEFF
     component "ManejadorCliente (Hilo-2)\n:Thread" as H2 #DDEEFF
@@ -60,7 +60,7 @@ clienteA --> RED : TCP Socket
 clienteB --> RED : TCP Socket
 clienteN --> RED : TCP Socket
 
-RED --> SP : conexiones entrantes\npuerto 5000
+RED --> SP : conexiones entrantes\npuerto 2346
 
 note bottom of RED
     Canal inseguro: serialización Java nativa

@@ -1,5 +1,5 @@
-@startuml DiagramaClases
-title Diagrama de Clases — Aplicación WhatsApp Distribuida
+@startuml clases_servidor
+title Diagrama de Clases — Paquetes de Servidor y Cliente
 
 skinparam classAttributeIconSize 0
 skinparam classFontSize 13
@@ -9,79 +9,10 @@ skinparam ClassBackgroundColor #FEFEFE
 skinparam ClassBorderColor #888888
 
 ' ─────────────────────────────────────────
-' PAQUETE: common/models  (DTOs de red)
+' Referencia externa al paquete de modelos
 ' ─────────────────────────────────────────
-package "whatsapp.common.models" #EAF4FF {
-
-    abstract class PaqueteRed {
-        - {final} idRemitente : String
-        --
-        # PaqueteRed(idRemitente : String)
-        + getIdRemitente() : String
-    }
-
-    class PaqueteLogin {
-        + PaqueteLogin(userId : String)
-    }
-
-    class PaqueteLogout {
-        + PaqueteLogout(userId : String)
-    }
-
-    class PaqueteMensaje {
-        - {final} idDestinatario : String
-        - {final} contenido : String
-        - {final} esGrupo : boolean
-        --
-        + PaqueteMensaje(remitente, destinatario, contenido, esGrupo)
-        + getIdDestinatario() : String
-        + getContenido() : String
-        + isEsGrupo() : boolean
-    }
-
-    class PaqueteCrearGrupo {
-        - {final} idGrupo : String
-        --
-        + PaqueteCrearGrupo(idCreador : String, idGrupo : String)
-        + getIdGrupo() : String
-    }
-
-    class PaqueteUnirseGrupo {
-        - {final} idGrupo : String
-        --
-        + PaqueteUnirseGrupo(idUsuario : String, idGrupo : String)
-        + getIdGrupo() : String
-    }
-
-    class PaqueteConfirm {
-        - {final} exito : boolean
-        - {final} mensaje : String
-        --
-        + PaqueteConfirm(destinatario, exito, mensaje)
-        + isExito() : boolean
-        + getMensaje() : String
-    }
-
-    class PaqueteError {
-        - {final} razon : String
-        --
-        + PaqueteError(userId : String, razon : String)
-        + getRazon() : String
-    }
-
-    PaqueteRed <|-- PaqueteLogin
-    PaqueteRed <|-- PaqueteLogout
-    PaqueteRed <|-- PaqueteMensaje
-    PaqueteRed <|-- PaqueteCrearGrupo
-    PaqueteRed <|-- PaqueteUnirseGrupo
-    PaqueteRed <|-- PaqueteConfirm
-    PaqueteRed <|-- PaqueteError
-
-    note top of PaqueteRed
-        Implementa java.io.Serializable.
-        Todos los campos son final (inmutables).
-        Permite marshalling nativo sobre ObjectStream.
-    end note
+class PaqueteRed <<(D,#EAF4FF) DTO>> {
+    (ver diagrama de modelos)
 }
 
 ' ─────────────────────────────────────────
@@ -166,7 +97,7 @@ package "whatsapp.client" #F5F0FF {
 }
 
 ' ─────────────────────────────────────────
-' NOTAS DE CLASES
+' NOTAS
 ' ─────────────────────────────────────────
 note right of SessionManager
     Patrón Monitor
@@ -195,17 +126,17 @@ note right of ClienteNodo
 end note
 
 ' ─────────────────────────────────────────
-' RELACIONES ENTRE PAQUETES
+' RELACIONES
 ' ─────────────────────────────────────────
 ServidorPrincipal ..> ManejadorCliente : <<crea>>
 ServidorPrincipal ..> SessionManager   : <<instancia>>
 ServidorPrincipal ..> GroupManager     : <<instancia>>
 
-ManejadorCliente --> SessionManager : usa (DI)
-ManejadorCliente --> GroupManager   : usa (DI)
-ManejadorCliente ..> PaqueteRed     : deserializa / envía
-SessionManager   --> ManejadorCliente : almacena referencia
+ManejadorCliente --> SessionManager    : usa (DI)
+ManejadorCliente --> GroupManager      : usa (DI)
+ManejadorCliente ..> PaqueteRed        : deserializa / envía
+SessionManager   --> ManejadorCliente  : almacena referencia
 
-ClienteNodo ..> PaqueteRed : serializa / recibe
+ClienteNodo ..> PaqueteRed             : serializa / recibe
 
 @enduml

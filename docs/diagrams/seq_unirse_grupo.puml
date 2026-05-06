@@ -1,0 +1,40 @@
+@startuml seq_unirse_grupo
+title Flujo 5 — Unirse a Grupo Existente
+
+skinparam sequenceArrowThickness 1.5
+skinparam sequenceParticipantBorderColor #666666
+skinparam sequenceLifeLineBorderColor #AAAAAA
+skinparam defaultFontSize 12
+skinparam shadowing false
+
+actor       "Usuario"           as U
+participant "Cliente"           as CLI
+participant "ManejadorCliente"  as MC
+participant "GroupManager"      as GM
+
+U   ->  CLI : /unirse <idGrupo>
+CLI ->  MC  : PaqueteUnirseGrupo(idUsuario, idGrupo)
+
+alt usuario no autenticado (idUsuarioAsignado == null)
+    MC  --> CLI : PaqueteError — "Debe autenticarse antes de unirse a un grupo."
+else usuario autenticado
+    MC  ->  GM  : agregarMiembro(idGrupo, idUsuarioAsignado)
+
+    note right of GM
+      writeLock().lock()
+      Verifica que el grupo exista
+      y que el usuario no sea miembro ya.
+    end note
+
+    alt éxito (grupo existe y usuario no es miembro)
+        GM  --> MC  : true
+        MC  --> CLI : PaqueteConfirm — "Te uniste al grupo '<idGrupo>'."
+        CLI -->  U  : muestra confirmación
+    else fallo (grupo no existe o ya es miembro)
+        GM  --> MC  : false
+        MC  --> CLI : PaqueteError — "No se pudo unir al grupo '<idGrupo>': no existe o ya eres miembro."
+        CLI -->  U  : muestra error
+    end
+end
+
+@enduml

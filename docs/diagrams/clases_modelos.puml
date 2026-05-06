@@ -1,0 +1,84 @@
+@startuml clases_modelos
+title Diagrama de Clases — Paquete de Modelos (DTOs de Red)
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 13
+skinparam packageFontSize 13
+skinparam ArrowColor #444444
+skinparam ClassBackgroundColor #FEFEFE
+skinparam ClassBorderColor #888888
+
+package "whatsapp.common.models" #EAF4FF {
+
+    abstract class PaqueteRed {
+        - {final} idRemitente : String
+        --
+        # PaqueteRed(idRemitente : String)
+        + getIdRemitente() : String
+    }
+
+    class PaqueteLogin {
+        + PaqueteLogin(userId : String)
+    }
+
+    class PaqueteLogout {
+        + PaqueteLogout(userId : String)
+    }
+
+    class PaqueteMensaje {
+        - {final} idDestinatario : String
+        - {final} contenido : String
+        - {final} esGrupo : boolean
+        --
+        + PaqueteMensaje(remitente, destinatario, contenido, esGrupo)
+        + getIdDestinatario() : String
+        + getContenido() : String
+        + isEsGrupo() : boolean
+    }
+
+    class PaqueteCrearGrupo {
+        - {final} idGrupo : String
+        --
+        + PaqueteCrearGrupo(idCreador : String, idGrupo : String)
+        + getIdGrupo() : String
+    }
+
+    class PaqueteUnirseGrupo {
+        - {final} idGrupo : String
+        --
+        + PaqueteUnirseGrupo(idUsuario : String, idGrupo : String)
+        + getIdGrupo() : String
+    }
+
+    class PaqueteConfirm {
+        - {final} exito : boolean
+        - {final} mensaje : String
+        --
+        + PaqueteConfirm(destinatario, exito, mensaje)
+        + isExito() : boolean
+        + getMensaje() : String
+    }
+
+    class PaqueteError {
+        - {final} razon : String
+        --
+        + PaqueteError(userId : String, razon : String)
+        + getRazon() : String
+    }
+
+    PaqueteRed <|-- PaqueteLogin
+    PaqueteRed <|-- PaqueteLogout
+    PaqueteRed <|-- PaqueteMensaje
+    PaqueteRed <|-- PaqueteCrearGrupo
+    PaqueteRed <|-- PaqueteUnirseGrupo
+    PaqueteRed <|-- PaqueteConfirm
+    PaqueteRed <|-- PaqueteError
+
+    note top of PaqueteRed
+        Implementa java.io.Serializable.
+        Todos los campos son final (inmutables).
+        Permite marshalling nativo sobre ObjectStream.
+    end note
+}
+
+@enduml

@@ -16,7 +16,7 @@ skinparam shadowing false
 ' ─────────────────────────────────────────────────────────
 
 rectangle "<b>CAPA 1 — Presentación (Cliente)</b>\nClienteNodo  [consola]  |  <i>whatsapp.client</i>" as C1 #DDEEFF
-rectangle "<b>CAPA 2 — Datos  (DTOs de Red)</b>\nPaqueteRed · PaqueteLogin · PaqueteLogout · PaqueteMensaje\nPaqueteCrearGrupo · PaqueteConfirm · PaqueteError\n<i>whatsapp.common.models</i>" as C2 #FFE8C0
+rectangle "<b>CAPA 2 — Datos  (DTOs de Red)</b>\nPaqueteRed · PaqueteLogin · PaqueteLogout · PaqueteMensaje\nPaqueteCrearGrupo · PaqueteUnirseGrupo · PaqueteConfirm · PaqueteError\n<i>whatsapp.common.models</i>" as C2 #FFE8C0
 rectangle "<b>CAPA 4 — Red  (Handlers)</b>\nManejadorCliente  [Thread por cliente]  |  ObjectInputStream / ObjectOutputStream\n<i>whatsapp.server.handlers</i>" as C4 #F5E6FF
 rectangle "<b>CAPA 3 — Lógica  (Estado Global)</b>\nSessionManager  [Monitor Lock — synchronized]\nGroupManager  [ReentrantReadWriteLock + copias defensivas]\n<i>whatsapp.server.managers</i>" as C3 #D6F5D6
 
@@ -24,7 +24,7 @@ rectangle "<b>CAPA 3 — Lógica  (Estado Global)</b>\nSessionManager  [Monitor 
 ' CAPA 5 al costado derecho (bootstrapper)
 ' ─────────────────────────────────────────────────────────
 
-rectangle "<b>CAPA 5 — Núcleo (Core)</b>\nServidorPrincipal\nServerSocket(5000)\nInstancia Singletons\nInyección de Dependencias\n<i>whatsapp.server.core</i>" as C5 #FFE0E0
+rectangle "<b>CAPA 5 — Núcleo (Core)</b>\nServidorPrincipal\nServerSocket(2346)\nInstancia Singletons\nInyección de Dependencias\n<i>whatsapp.server.core</i>" as C5 #FFE0E0
 
 ' ─────────────────────────────────────────────────────────
 ' FLUJO DE COMUNICACIÓN (columna principal, top → bottom)
