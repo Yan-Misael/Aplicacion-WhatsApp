@@ -155,8 +155,11 @@ public class ManejadorCliente extends Thread {
      * Envía el objeto (serializado) de vuelta a la red.
      */
     public void enviarObjeto(PaqueteRed paquete) throws IOException {
-        out.writeObject(paquete);
-        out.flush();
+        synchronized (this.out) {
+            out.writeObject(paquete);
+            out.flush();
+            out.reset();
+        }
     }
     
     /**
