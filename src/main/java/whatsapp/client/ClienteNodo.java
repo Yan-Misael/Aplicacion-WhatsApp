@@ -5,6 +5,7 @@ import whatsapp.common.models.PaqueteCrearGrupo;
 import whatsapp.common.models.PaqueteUnirseGrupo;
 import whatsapp.common.models.PaqueteError;
 import whatsapp.common.models.PaqueteLogin;
+import whatsapp.common.models.PaqueteLogout;
 import whatsapp.common.models.PaqueteMensaje;
 import whatsapp.common.models.PaqueteRed;
 
@@ -141,6 +142,10 @@ public class ClienteNodo {
 
                     case "/salir":
                         System.out.println("Cerrando cliente...");
+                        try {
+                            out.writeObject(new PaqueteLogout(miId));
+                            out.flush();
+                        } catch (IOException ignored) {}
                         System.exit(0);
                         break;
 

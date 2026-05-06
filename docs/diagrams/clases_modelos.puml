@@ -25,6 +25,12 @@ package "whatsapp.common.models" #EAF4FF {
         + PaqueteLogout(userId : String)
     }
 
+    note right of PaqueteLogout
+        Enviado por ClienteNodo al ejecutar /salir.
+        El servidor llama a liberarRecursos()
+        al recibirlo (logout limpio).
+    end note
+
     class PaqueteMensaje {
         - {final} idDestinatario : String
         - {final} contenido : String

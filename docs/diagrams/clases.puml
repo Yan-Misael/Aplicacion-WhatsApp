@@ -28,6 +28,12 @@ package "whatsapp.common.models" #EAF4FF {
         + PaqueteLogout(userId : String)
     }
 
+    note right of PaqueteLogout
+        Enviado por ClienteNodo al ejecutar /salir.
+        El servidor llama a liberarRecursos()
+        al recibirlo (logout limpio).
+    end note
+
     class PaqueteMensaje {
         - {final} idDestinatario : String
         - {final} contenido : String
@@ -139,7 +145,7 @@ package "whatsapp.server.handlers" #F0FFF0 {
 package "whatsapp.server.core" #FFF0F0 {
 
     class ServidorPrincipal {
-        - PUERTO : int {static} = 2346
+        - PUERTO : int {static} {final} = 2346
         --
         + main(args : String[]) {static}
     }

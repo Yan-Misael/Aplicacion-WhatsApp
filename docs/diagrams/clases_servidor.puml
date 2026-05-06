@@ -70,7 +70,7 @@ package "whatsapp.server.handlers" #F0FFF0 {
 package "whatsapp.server.core" #FFF0F0 {
 
     class ServidorPrincipal {
-        - PUERTO : int {static} = 2346
+        - PUERTO : int {static} {final} = 2346
         --
         + main(args : String[]) {static}
     }

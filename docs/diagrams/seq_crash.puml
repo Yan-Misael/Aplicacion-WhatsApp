@@ -16,7 +16,7 @@ note over MC : Cliente cierra la app sin logout.\nTCP RST/FIN llega al servidor.
 MC  ->  SOC : in.readObject()  [bloqueante]
 SOC --> MC  : IOException  (EOFException / SocketException)
 
-MC  ->  MC  : catch — "[Alerta] Cliente desconectado"
+MC  ->  MC  : catch — "[Alerta] Cliente desconectado abruptamente: [IP]"
 MC  ->  MC  : finally → liberarRecursos()
 MC  ->  SM  : removerUsuario(idUsuarioAsignado)
 SM  --> MC  : sesión eliminada
