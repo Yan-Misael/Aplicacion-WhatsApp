@@ -38,7 +38,7 @@ public class SessionManager {
 
     /**
      * Intenta registrar un nuevo usuario en el sistema de forma atómica.
-     * * @param idUsuario Identificador único del cliente que solicita conexión.
+     * @param idUsuario Identificador único del cliente que solicita conexión.
      * @param manejador Instancia del hilo de red (ManejadorCliente) asociado al usuario.
      * @return {@code true} si el usuario fue registrado con éxito; {@code false} si 
      * ya existía una sesión activa con ese identificador.
@@ -56,7 +56,7 @@ public class SessionManager {
     /**
      * Libera de forma segura la sesión de un usuario y elimina su entrada del 
      * mapa de enrutamiento.
-     * * @param idUsuario Identificador del usuario a desconectar.
+     * @param idUsuario Identificador del usuario a desconectar.
      */
     public void removerUsuario(String idUsuario) {
         if (idUsuario == null) {
@@ -72,7 +72,7 @@ public class SessionManager {
      * Recupera la instancia del manejador de red asociado a un usuario específico.
      * La lectura se realiza dentro del bloque sincronizado para garantizar la 
      * visibilidad en memoria frente a escrituras recientes de otros hilos.
-     * * @param idUsuario Identificador del destinatario.
+     * @param idUsuario Identificador del destinatario.
      * @return El {@link ManejadorCliente} asociado, o {@code null} si el usuario 
      * no está conectado.
      */
