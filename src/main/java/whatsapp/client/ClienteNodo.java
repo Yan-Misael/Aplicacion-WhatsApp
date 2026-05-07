@@ -27,6 +27,49 @@ public class ClienteNodo {
     private ObjectOutputStream out;
     private ObjectInputStream in;
     private String miId;
+    
+    private static final String RESET = "\u001B[0m";
+    private static final String[] COLORES = {
+        "\u001B[31m",
+        "\u001B[32m",
+        "\u001B[33m",
+        "\u001B[34m",
+        "\u001B[35m",
+        "\u001B[36m",
+        "\u001B[41m",
+        "\u001B[42m",
+        "\u001B[43m",
+        "\u001B[44m",
+        "\u001B[45m",
+        "\u001B[46m",
+        "\u001B[91m",
+        "\u001B[92m",
+        "\u001B[93m",
+        "\u001B[94m",
+        "\u001B[95m",
+        "\u001B[96m",
+        "\u001B[36m",
+        "\u001B[101m",
+        "\u001B[102m",
+        "\u001B[103m",
+        "\u001B[104m",
+        "\u001B[105m",
+        "\u001B[106m"
+    };
+    
+    // Mapa para recordar qué color le asignamos a cada usuario/grupo
+    private final java.util.Map<String, String> coloresAsignados = new java.util.HashMap<>();
+    private int indiceColor = 0;
+
+    // Método para obtener (o asignar) un color consistente
+    private String obtenerColor(String identificador) {
+        if (!coloresAsignados.containsKey(identificador)) {
+            // Asignamos un color secuencialmente y volvemos al inicio si se acaban
+            coloresAsignados.put(identificador, COLORES[indiceColor % COLORES.length]);
+            indiceColor++;
+        }
+        return coloresAsignados.get(identificador);
+    }
 
     public static void main(String[] args) {
         if (args.length > 0) {
@@ -58,19 +101,24 @@ public class ClienteNodo {
             procesarComandos(scanner);
 
         } catch (IOException e) {
-            System.err.println("Fallo de conexión: El servidor no está disponible.");
+            System.err.println("\u001B[4;37;41m Fallo de conexión: El servidor no esta disponible." + RESET);
         }
+    }
+    
+    private void listarComandos() {
+        System.out.println("\n --- Comandos disponibles ---");
+        System.out.println("\u001B[32m  /login <nombre_usuario>             * Iniciar sesión");
+        System.out.println(" /msg <destinatario> <mensaje>       * Mensaje privado");
+        System.out.println(" /creargrupo <id_grupo>              * Crear un grupo nuevo");
+        System.out.println(" /unirse <id_grupo>                  * Unirse a un grupo existente");
+        System.out.println(" /gmsg <id_grupo> <mensaje>          * Enviar mensaje al grupo");
+        System.out.println(" /salir                              * Desconectarse");
+        System.out.println(" /?                                  * Listar Comandos" + RESET);
     }
 
     private void procesarComandos(Scanner scanner) {
-        System.out.println("Comandos disponibles:");
-        System.out.println("  /login <nombre_usuario>             — Iniciar sesión");
-        System.out.println("  /msg <destinatario> <mensaje>       — Mensaje privado");
-        System.out.println("  /creargrupo <id_grupo>              — Crear un grupo nuevo");
-        System.out.println("  /unirse <id_grupo>                  — Unirse a un grupo existente");
-        System.out.println("  /gmsg <id_grupo> <mensaje>          — Enviar mensaje al grupo");
-        System.out.println("  /salir                              — Desconectarse");
-
+        listarComandos();
+        
         try {
             while (true) {
                 String input = scanner.nextLine();
@@ -82,9 +130,14 @@ public class ClienteNodo {
                 switch (comando) {
                     case "/login":
                         if (partes.length == 2) {
-                            miId = partes[1];
-                            out.writeObject(new PaqueteLogin(miId));
-                            out.flush();
+                            if (miId != null) {
+                                System.out.println("Ya estás registrado");
+                            }
+                            else {
+                                miId = partes[1];
+                                out.writeObject(new PaqueteLogin(miId));
+                                out.flush();
+                            }
                         } else {
                             System.out.println("Sintaxis: /login <id>");
                         }
@@ -106,6 +159,7 @@ public class ClienteNodo {
                     case "/creargrupo":
                         // Crea el grupo en el servidor y agrega al creador como primer miembro
                         if (partes.length == 2 && miId != null) {
+                            
                             String idGrupo = partes[1];
                             out.writeObject(new PaqueteCrearGrupo(miId, idGrupo));
                             out.flush();
@@ -148,9 +202,12 @@ public class ClienteNodo {
                         } catch (IOException ignored) {}
                         System.exit(0);
                         break;
+                        
+                    case "/?":
+                    listarComandos();
 
                     default:
-                        System.out.println("Comando no reconocido. Escribe /login, /msg, /creargrupo, /unirse, /gmsg o /salir.");
+                        System.out.println("Comando no reconocido. Escribe /login, /msg, /creargrupo, /unirse, /gmsg, /salir o /?.");
                 }
             }
         } catch (IOException e) {
@@ -165,13 +222,17 @@ public class ClienteNodo {
 
                 if (respuesta instanceof PaqueteMensaje) {
                     PaqueteMensaje msj = (PaqueteMensaje) respuesta;
+                    
                     if (msj.isEsGrupo()) {
-                        // Mensaje grupal: indica el grupo de origen
-                        System.out.println("\n[Grupo " + msj.getIdDestinatario() + "] "
-                                + msj.getIdRemitente() + ": " + msj.getContenido());
+                        // Mensaje grupal: Obtenemos un color asignado al nombre del grupo
+                        String color = obtenerColor(msj.getIdDestinatario());
+                        System.out.println("\n" + color + "[Grupo " + msj.getIdDestinatario() + "] " 
+                                + msj.getIdRemitente() + ":" + RESET + " " + msj.getContenido());
                     } else {
-                        // Mensaje privado
-                        System.out.println("\n[" + msj.getIdRemitente() + "]: " + msj.getContenido());
+                        // Mensaje privado: Obtenemos un color asignado al remitente
+                        String color = obtenerColor(msj.getIdRemitente());
+                        System.out.println("\n" + color + "[" + msj.getIdRemitente() + "]:" + RESET 
+                                + " " + msj.getContenido());
                     }
                 }
                 else if (respuesta instanceof PaqueteConfirm) {
