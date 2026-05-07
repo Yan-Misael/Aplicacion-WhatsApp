@@ -107,7 +107,7 @@ public class ClienteNodo {
     
     private void listarComandos() {
         System.out.println("\n --- Comandos disponibles ---");
-        System.out.println("\u001B[32m  /login <nombre_usuario>             * Iniciar sesión");
+        System.out.println("\u001B[32m /login <nombre_usuario>             * Iniciar sesión");
         System.out.println(" /msg <destinatario> <mensaje>       * Mensaje privado");
         System.out.println(" /creargrupo <id_grupo>              * Crear un grupo nuevo");
         System.out.println(" /unirse <id_grupo>                  * Unirse a un grupo existente");
