@@ -39,7 +39,7 @@ public class ServidorPrincipal {
                 manejador.start();
             }
         } catch (IOException e) {
-            System.err.println("[Error Crítico] Fallo en el socket principal: " + e.getMessage());
+            System.err.println("[Error Critico] Fallo en el socket principal: " + e.getMessage());
         }
     }
 }
