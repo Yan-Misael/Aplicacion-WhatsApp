@@ -34,16 +34,22 @@ public class GroupManager {
 
     /**
      * Crea un grupo nuevo y añade al fundador como primer miembro, asegurando que no haya colisiones de ID.
-     * * @param idGrupo   Identificador único del grupo a crear.
+     * @param idGrupo   Identificador único del grupo a crear.
      * @param idCreador Identificador del usuario que funda el grupo.
+     * @return {@code true} si se crea con éxito; {@code false} si ya existe
+     *    un grupo con el nombre entregado.
      */
-    public void registrarGrupo(String idGrupo, String idCreador) {
+    public boolean registrarGrupo(String idGrupo, String idCreador) {
         rwLock.writeLock().lock();
         try {
             if (!gruposActivos.containsKey(idGrupo)) {
                 List<String> miembros = new ArrayList<>();
                 miembros.add(idCreador);
                 gruposActivos.put(idGrupo, miembros);
+                return true;
+            }
+            else {
+                return false;
             }
         } finally {
             rwLock.writeLock().unlock();
