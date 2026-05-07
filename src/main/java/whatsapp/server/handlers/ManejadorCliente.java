@@ -10,6 +10,7 @@ import whatsapp.common.models.PaqueteUnirseGrupo;
 import whatsapp.common.models.PaqueteLogout;
 import whatsapp.server.managers.SessionManager;
 import whatsapp.server.managers.GroupManager;
+import whatsapp.client.ClienteNodo;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -86,7 +87,7 @@ public class ManejadorCliente extends Thread {
                 System.out.println("Usuario " + userId + " autenticado");
             } else {
                 try {
-                    enviarObjeto(new PaqueteError(userId, "El id ya está en uso"));
+                    enviarObjeto(new PaqueteError(userId, "El id ya esta en uso"));
                 } catch (IOException e) {}
                 liberarRecursos();
             }
@@ -116,8 +117,13 @@ public class ManejadorCliente extends Thread {
             }
             
             PaqueteCrearGrupo crear = (PaqueteCrearGrupo) paquete;
-            groupManager.registrarGrupo(crear.getIdGrupo(), crear.getIdRemitente());
-            enviarObjeto(new PaqueteConfirm(idUsuarioAsignado, true, "Grupo '" + crear.getIdGrupo() + "' creado."));
+            if (groupManager.registrarGrupo(crear.getIdGrupo(), crear.getIdRemitente())){
+                enviarObjeto(new PaqueteConfirm(idUsuarioAsignado, true, "Grupo '" + crear.getIdGrupo() + "' creado."));
+            }
+            else {
+                enviarObjeto(new PaqueteError("Servidor",
+                        "No se pudo crear el grupo '" + crear.getIdGrupo() + "': ya existe un grupo con este nombre, intenta uno distinto."));
+            }
         }
 
         // Unirse a un grupo existente
@@ -133,7 +139,7 @@ public class ManejadorCliente extends Thread {
             if (exito) {
                 enviarObjeto(new PaqueteConfirm(idUsuarioAsignado, true,
                         "Te uniste al grupo '" + unirse.getIdGrupo() + "'."));
-                System.out.println("[Servidor] " + idUsuarioAsignado + " se unió al grupo '" + unirse.getIdGrupo() + "'.");
+                System.out.println("[Servidor] " + idUsuarioAsignado + " se unio al grupo '" + unirse.getIdGrupo() + "'.");
             } else {
                 enviarObjeto(new PaqueteError("Servidor",
                         "No se pudo unir al grupo '" + unirse.getIdGrupo() + "': no existe o ya eres miembro."));
@@ -142,7 +148,7 @@ public class ManejadorCliente extends Thread {
         
         // Finalmente, para el logout
         else if (paquete instanceof PaqueteLogout) {
-            System.out.println("Usuario " + idUsuarioAsignado + " cerró sesión.");
+            System.out.println("Usuario " + idUsuarioAsignado + " cerro sesión.");
             liberarRecursos();
         }
         
@@ -179,7 +185,7 @@ public class ManejadorCliente extends Thread {
         } catch (IOException e) {
             // El destinatario cayó justo en el momento del envío.
             System.err.println("Fallo al entregar mensaje a " + msg.getIdDestinatario());
-            enviarObjeto(new PaqueteError("Servidor", "El mensaje no pudo ser entregado. '" + msg.getIdDestinatario() + "' perdió conexión."));
+            enviarObjeto(new PaqueteError("Servidor", "El mensaje no pudo ser entregado. '" + msg.getIdDestinatario() + "' perdio conexión."));
         }
     }
 
@@ -204,7 +210,7 @@ public class ManejadorCliente extends Thread {
                 } catch (IOException e) {
                     // Si un miembro del grupo tiene el socket roto, registramos el fallo,
                     // pero continuamos el ciclo para que los demás sí reciban el mensaje.
-                    System.err.println("Error aislando nodo caído en grupo: " + idMiembro);
+                    System.err.println("Error aislando nodo caido en grupo: " + idMiembro);
                 }
             }
         }
@@ -221,4 +227,5 @@ public class ManejadorCliente extends Thread {
             if (socket != null && !socket.isClosed()) socket.close();
         } catch (IOException ignored) {}
     }
+
 }
