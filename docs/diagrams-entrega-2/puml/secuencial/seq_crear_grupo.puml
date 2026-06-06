@@ -1,0 +1,42 @@
+@startuml seq_crear_grupo
+title Flujo Auxiliar - Crear Grupo
+
+skinparam sequenceArrowThickness 1.5
+skinparam sequenceParticipantBorderColor #666666
+skinparam sequenceLifeLineBorderColor #AAAAAA
+skinparam defaultFontSize 12
+skinparam shadowing false
+
+actor       "Usuario"           as U
+participant "Cliente"           as CLI
+participant "ManejadorCliente"  as MC
+participant "GroupManager"      as GM
+
+U   ->  CLI : /creargrupo <idGrupo>
+CLI ->  MC  : PaqueteCrearGrupo(idCreador, idGrupo)
+
+alt usuario no autenticado (idUsuarioAsignado == null)
+    MC  --> CLI : PaqueteError - "Debe autenticarse antes de crear grupos."
+    CLI --> U   : muestra error
+else usuario autenticado
+    MC  ->  GM  : registrarGrupo(idGrupo, idCreador)
+
+note right of GM
+  writeLock().lock()
+  Verifica si el grupo ya existe.
+  Si no existe, crea la lista de miembros
+  y agrega al creador como primer miembro.
+end note
+
+alt grupo creado correctamente
+    GM  --> MC  : true
+    MC  --> CLI : PaqueteConfirm - "Grupo '<idGrupo>' creado."
+    CLI --> U   : muestra confirmación
+else grupo ya existente
+    GM  --> MC  : false
+    MC  --> CLI : PaqueteError - "Ya existe un grupo con este nombre."
+    CLI --> U   : muestra error
+end
+end
+
+@enduml

@@ -1,0 +1,60 @@
+@startuml seq_mensaje_grupal
+title Función principal 2 - Mensaje Grupal (Broadcast)
+
+skinparam sequenceArrowThickness 1.5
+skinparam sequenceParticipantBorderColor #666666
+skinparam sequenceLifeLineBorderColor #AAAAAA
+skinparam defaultFontSize 12
+skinparam shadowing false
+
+actor       "Emisor E"              as E
+participant "Cliente E"             as CLIE
+participant "ManejadorCliente E"    as MCE
+participant "GroupManager"          as GM
+participant "SessionManager"        as SM
+participant "ManejadorCliente Miembro" as MCM
+participant "Cliente Miembro"       as CLIM
+actor       "Usuario Miembro"       as UM
+
+E    ->  CLIE : /gmsg sala1 <mensaje>
+CLIE ->  MCE  : PaqueteMensaje(de=E, para="sala1", esGrupo=true)
+
+MCE  ->  GM   : obtenerCopiaMiembros("sala1")
+GM   --> MCE  : lista de miembros
+
+note right of GM
+  readLock().lock()
+  Retorna copia defensiva:
+  new ArrayList<>(miembros)
+end note
+
+alt grupo no existe o lista vacía
+    MCE --> CLIE : PaqueteError - "El grupo 'sala1' no existe."
+    CLIE --> E   : muestra error
+else grupo existe
+    alt emisor no pertenece al grupo
+        MCE --> CLIE : PaqueteError - "No eres miembro del grupo."
+        CLIE --> E   : muestra error
+    else emisor pertenece al grupo
+        loop por cada miembro distinto del emisor
+            MCE -> SM : obtenerSesion(idMiembro)
+
+            alt miembro desconectado (sesión null)
+                SM  --> MCE : null
+                MCE ->  MCE : omite miembro y continúa
+            else miembro conectado
+                SM  --> MCE : ManejadorCliente del miembro
+                MCE ->  MCM : enviarObjeto(PaqueteMensaje)
+
+                alt entrega exitosa
+                    MCM --> CLIM : entrega mensaje
+                    CLIM --> UM  : muestra mensaje grupal
+                else IOException durante envío
+                    MCE -> MCE : registra fallo aislado\ncontinúa con siguiente miembro
+                end
+            end
+        end
+    end
+end
+
+@enduml
