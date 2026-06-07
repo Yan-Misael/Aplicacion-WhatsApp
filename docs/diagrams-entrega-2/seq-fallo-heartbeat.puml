@@ -1,0 +1,49 @@
+@startuml
+title Detección de fallos - Heartbeats y timeout
+
+skinparam monochrome true
+skinparam shadowing false
+
+participant "node1\nServerNode" as N1
+participant "schedulerPool\nnode1" as SP1
+participant "HeartbeatManager\nnode1" as HB1
+participant "FailureDetector\nnode1" as FD1
+participant "MembershipManager\nnode1" as MM1
+
+participant "node2\nServerNode" as N2
+participant "HeartbeatManager\nnode2" as HB2
+
+participant "node3\nServerNode" as N3
+participant "MembershipManager\nnode3" as MM3
+
+== Régimen normal ==
+
+SP1 -> HB1 : enviar heartbeat periódico
+HB1 -> N2 : HEARTBEAT(node1)
+N2 -> HB2 : procesar heartbeat
+HB2 --> N1 : HEARTBEAT_ACK(node2)
+HB1 -> MM1 : markAlive(node2)
+
+== Falla inducida de node2 ==
+
+N2 -> N2 : crash / proceso detenido
+
+SP1 -> HB1 : enviar heartbeat periódico
+HB1 -> N2 : HEARTBEAT(node1)
+N2 -x HB1 : sin respuesta
+
+SP1 -> FD1 : revisar timeouts
+FD1 -> MM1 : markSuspected(node2)
+N1 -> N1 : log "node2 marcado como SUSPECTED"
+
+SP1 -> FD1 : revisar timeout extendido
+FD1 -> MM1 : markDown(node2)
+N1 -> N1 : log "node2 marcado como DOWN"
+
+== Propagación básica de membresía ==
+
+N1 -> N3 : MEMBERSHIP_UPDATE(node2=DOWN)
+N3 -> MM3 : actualizar estado node2
+N3 -> N3 : servicio continúa activo
+
+@enduml

@@ -1,0 +1,85 @@
+@startuml
+title Coordinación distribuida - Modificación de GROUP_REGISTRY
+
+skinparam monochrome true
+skinparam shadowing false
+
+actor "Cliente A" as A
+
+participant "node1\nServerNode" as N1
+participant "ClientConnectionHandler\nnode1" as CCH1
+participant "MutualExclusionManager\nnode1" as ME1
+participant "LamportClock\nnode1" as L1
+participant "PeerTransport TCP\nnode1" as PT1
+participant "DistributedGroupManager\nnode1" as DGM1
+
+participant "node2\nServerNode" as N2
+participant "MutualExclusionManager\nnode2" as ME2
+participant "LamportClock\nnode2" as L2
+participant "DistributedGroupManager\nnode2" as DGM2
+
+participant "node3\nServerNode" as N3
+participant "MutualExclusionManager\nnode3" as ME3
+participant "LamportClock\nnode3" as L3
+participant "DistributedGroupManager\nnode3" as DGM3
+
+== Solicitud del cliente ==
+
+A -> N1 : Crear grupo grupoX
+N1 -> CCH1 : procesar solicitud
+CCH1 -> ME1 : requestCriticalSection(GROUP_REGISTRY)
+
+== Solicitud de exclusión mutua ==
+
+ME1 -> L1 : increment()
+L1 --> ME1 : L=15
+
+ME1 -> PT1 : broadcast MUTEX_REQUEST\nresource=GROUP_REGISTRY,L=15
+
+PT1 -> N2 : MUTEX_REQUEST(node1,L=15)
+N2 -> ME2 : recibir solicitud
+ME2 -> L2 : update(max(local,15)+1)
+L2 --> ME2 : L=18
+ME2 --> N1 : MUTEX_REPLY(to=node1)
+
+PT1 -> N3 : MUTEX_REQUEST(node1,L=15)
+N3 -> ME3 : recibir solicitud
+ME3 -> L3 : update(max(local,15)+1)
+L3 --> ME3 : L=20
+ME3 --> N1 : MUTEX_REPLY(to=node1)
+
+== Entrada a sección crítica ==
+
+N1 -> ME1 : recibir replies de node2 y node3
+ME1 -> L1 : increment()
+L1 --> ME1 : L=21
+ME1 -> ME1 : ENTER_CRITICAL_SECTION\nGROUP_REGISTRY
+
+== Modificación del recurso crítico ==
+
+ME1 -> DGM1 : createGroup(grupoX, miembros)
+DGM1 --> ME1 : grupo creado
+
+== Replicación del cambio ==
+
+ME1 -> L1 : increment()
+L1 --> ME1 : L=25
+
+ME1 -> PT1 : broadcast GROUP_UPDATE_COMMIT\noperation=CREATE, group=grupoX, L=25
+
+PT1 -> N2 : GROUP_UPDATE_COMMIT(grupoX)
+N2 -> DGM2 : aplicar actualización
+DGM2 --> N2 : aplicado
+N2 --> N1 : GROUP_UPDATE_ACK
+
+PT1 -> N3 : GROUP_UPDATE_COMMIT(grupoX)
+N3 -> DGM3 : aplicar actualización
+DGM3 --> N3 : aplicado
+N3 --> N1 : GROUP_UPDATE_ACK
+
+== Salida de sección crítica ==
+
+ME1 -> ME1 : EXIT_CRITICAL_SECTION\nGROUP_REGISTRY
+ME1 -> A : creación de grupo confirmada
+
+@enduml

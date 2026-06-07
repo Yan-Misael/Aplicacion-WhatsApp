@@ -1,0 +1,78 @@
+@startuml
+title Función principal 2 - Mensajería grupal distribuida
+
+skinparam monochrome true
+skinparam shadowing false
+
+actor "Cliente A" as A
+
+participant "node1\nServerNode" as N1
+participant "ClientConnectionHandler\nnode1" as CCH1
+participant "MessageRouter\nnode1" as MR1
+participant "DistributedGroupManager\nnode1" as DGM1
+participant "LocalSessionManager\nnode1" as LSM1
+participant "PeerTransport TCP\nnode1" as PT1
+
+participant "node2\nServerNode" as N2
+participant "PeerMessageHandler\nnode2" as PMH2
+participant "MessageRouter\nnode2" as MR2
+participant "LocalSessionManager\nnode2" as LSM2
+actor "Cliente B" as B
+
+participant "node3\nServerNode" as N3
+participant "PeerMessageHandler\nnode3" as PMH3
+participant "MessageRouter\nnode3" as MR3
+participant "LocalSessionManager\nnode3" as LSM3
+actor "Cliente C" as C
+
+== Cliente A envía mensaje grupal ==
+
+A -> N1 : PaqueteMensajeGrupo(grupoX, texto)
+N1 -> CCH1 : procesar paquete
+CCH1 -> MR1 : routeGroupMessage(A, grupoX, texto)
+
+== Validar grupo y membresía ==
+
+MR1 -> DGM1 : groupExists(grupoX)
+DGM1 --> MR1 : true
+
+MR1 -> DGM1 : isMember(grupoX, A)
+DGM1 --> MR1 : true
+
+MR1 -> DGM1 : getMembersSnapshot(grupoX)
+DGM1 --> MR1 : [A, B, C]
+
+== Entrega local y reenvío remoto ==
+
+MR1 -> LSM1 : entregar a miembros locales
+LSM1 --> MR1 : entregado localmente si aplica
+
+MR1 -> PT1 : sendToNode(node2,\nGROUP_MESSAGE_FORWARD)
+PT1 -> N2 : GROUP_MESSAGE_FORWARD(grupoX,texto,targetMembers=[B])
+
+MR1 -> PT1 : sendToNode(node3,\nGROUP_MESSAGE_FORWARD)
+PT1 -> N3 : GROUP_MESSAGE_FORWARD(grupoX,texto,targetMembers=[C])
+
+== Entrega en node2 ==
+
+N2 -> PMH2 : recibir GROUP_MESSAGE_FORWARD
+PMH2 -> MR2 : procesar mensaje grupal remoto
+MR2 -> LSM2 : getLocalSession(B)
+LSM2 --> MR2 : sesión local B
+MR2 -> B : entregar mensaje grupal
+
+== Entrega en node3 ==
+
+N3 -> PMH3 : recibir GROUP_MESSAGE_FORWARD
+PMH3 -> MR3 : procesar mensaje grupal remoto
+MR3 -> LSM3 : getLocalSession(C)
+LSM3 --> MR3 : sesión local C
+MR3 -> C : entregar mensaje grupal
+
+== Confirmaciones ==
+
+PMH2 --> N1 : GROUP_MESSAGE_ACK(deliveredUsers=[B])
+PMH3 --> N1 : GROUP_MESSAGE_ACK(deliveredUsers=[C])
+N1 -> N1 : registrar métricas y logs
+
+@enduml

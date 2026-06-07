@@ -1,0 +1,41 @@
+@startuml
+title Modelo físico final - Arquitectura multiservidor
+
+skinparam monochrome true
+skinparam shadowing false
+skinparam linetype ortho
+
+node "Cliente A\nProceso cliente" as cA
+node "Cliente B\nProceso cliente" as cB
+node "Cliente C\nProceso cliente" as cC
+
+node "ServerNode node1\nclientPort: 5001\npeerPort: 6001\nJVM independiente" as n1
+node "ServerNode node2\nclientPort: 5002\npeerPort: 6002\nJVM independiente" as n2
+node "ServerNode node3\nclientPort: 5003\npeerPort: 6003\nJVM independiente" as n3
+
+cloud "Red TCP/IP / LAN" as net
+
+cA --> n1 : TCP cliente-servidor\nlocalhost:5001
+cB --> n2 : TCP cliente-servidor\nlocalhost:5002
+cC --> n3 : TCP cliente-servidor\nlocalhost:5003
+
+n1 <--> n2 : TCP inter-nodo\n6001 <-> 6002
+n1 <--> n3 : TCP inter-nodo\n6001 <-> 6003
+n2 <--> n3 : TCP inter-nodo\n6002 <-> 6003
+
+note bottom of n1
+node.id=node1
+node.peers=node2,node3
+end note
+
+note bottom of n2
+node.id=node2
+node.peers=node1,node3
+end note
+
+note bottom of n3
+node.id=node3
+node.peers=node1,node2
+end note
+
+@enduml

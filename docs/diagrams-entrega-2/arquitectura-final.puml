@@ -1,0 +1,104 @@
+@startuml
+title Arquitectura interna de ServerNode
+
+skinparam monochrome true
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+package "ServerNode" {
+
+  component "NodeConfig" as NC
+  component "ServerNodeContext" as CTX
+
+  package "Capa cliente-servidor" {
+    component "ClientAcceptor" as CA
+    component "clientWorkerPool\nExecutorService" as CWP
+    component "ClientConnectionHandler" as CCH
+  }
+
+  package "Capa inter-nodo" {
+    interface "PeerTransport" as PT
+    component "NoOpPeerTransport\nplaceholder P1" as NOPT
+    component "TcpPeerTransport\nimplementa P2" as TCPT
+    component "PeerListener" as PL
+    component "peerWorkerPool\nExecutorService" as PWP
+    component "PeerMessageHandler" as PMH
+    component "PeerConnectionManager" as PCM
+  }
+
+  package "Tareas periódicas y fallos" {
+    component "schedulerPool\nScheduledExecutorService" as SP
+    component "HeartbeatManager" as HB
+    component "FailureDetector" as FD
+  }
+
+  package "Coordinación distribuida" {
+    component "coordinationExecutor\nSingleThreadExecutor" as CE
+    component "MutualExclusionManager\nRicart-Agrawala" as MEM
+    component "LamportClock" as LC
+  }
+
+  package "Estado y lógica distribuida" {
+    component "MessageRouter" as MR
+    component "LocalSessionManager" as LSM
+    component "GlobalUserDirectory" as GUD
+    component "DistributedGroupManager" as DGM
+    component "MembershipManager" as MM
+    component "MetricsCollector" as MC
+  }
+}
+
+NC --> CTX
+CTX --> CWP
+CTX --> PWP
+CTX --> SP
+CTX --> CE
+
+CA --> CWP
+CWP --> CCH
+CCH --> MR
+
+PT <|.. NOPT
+PT <|.. TCPT
+
+TCPT --> PL
+TCPT --> PCM
+PL --> PWP
+PWP --> PMH
+PMH --> MR
+PMH --> MM
+PMH --> CE
+
+PCM --> PT
+MR --> PT
+
+SP --> HB
+SP --> FD
+HB --> MM
+FD --> MM
+
+CE --> MEM
+MEM --> LC
+MEM --> DGM
+
+MR --> LSM
+MR --> GUD
+MR --> DGM
+MR --> MM
+MR --> LC
+MR --> MC
+
+note right of NOPT
+Implementación temporal
+entregada por Persona 1.
+No envía mensajes reales.
+end note
+
+note right of TCPT
+Implementación esperada
+de Persona 2.
+Usa sockets TCP.
+end note
+
+@enduml

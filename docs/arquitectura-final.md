@@ -112,17 +112,17 @@ La base técnica entregada por Persona 1 inicia cada nodo leyendo un archivo `.p
 Comandos esperados:
 
 ~~~bash
-java whatsapp.server.ServerNode config/node1.properties
-java whatsapp.server.ServerNode config/node2.properties
-java whatsapp.server.ServerNode config/node3.properties
+java whatsapp.server.core.ServerNode config/node1.properties
+java whatsapp.server.core.ServerNode config/node2.properties
+java whatsapp.server.core.ServerNode config/node3.properties
 ~~~
 
 En Maven:
 
 ~~~bash
-mvn -Dexec.mainClass=whatsapp.server.ServerNode -Dexec.args="config/node1.properties" org.codehaus.mojo:exec-maven-plugin:3.5.1:java
-mvn -Dexec.mainClass=whatsapp.server.ServerNode -Dexec.args="config/node2.properties" org.codehaus.mojo:exec-maven-plugin:3.5.1:java
-mvn -Dexec.mainClass=whatsapp.server.ServerNode -Dexec.args="config/node3.properties" org.codehaus.mojo:exec-maven-plugin:3.5.1:java
+mvn -Dexec.mainClass=whatsapp.server.core.ServerNode -Dexec.args="config/node1.properties" org.codehaus.mojo:exec-maven-plugin:3.5.1:java
+mvn -Dexec.mainClass=whatsapp.server.core.ServerNode -Dexec.args="config/node2.properties" org.codehaus.mojo:exec-maven-plugin:3.5.1:java
+mvn -Dexec.mainClass=whatsapp.server.core.ServerNode -Dexec.args="config/node3.properties" org.codehaus.mojo:exec-maven-plugin:3.5.1:java
 ~~~
 
 Persona 2 puede extender el `main` para aceptar también argumentos explícitos como:

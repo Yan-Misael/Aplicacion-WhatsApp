@@ -1,0 +1,53 @@
+@startuml
+title Función principal 1 - Mensajería privada distribuida
+
+skinparam monochrome true
+skinparam shadowing false
+
+actor "Cliente A" as A
+participant "node1\nServerNode" as N1
+participant "ClientConnectionHandler\nnode1" as CCH1
+participant "MessageRouter\nnode1" as MR1
+participant "LocalSessionManager\nnode1" as LSM1
+participant "GlobalUserDirectory\nnode1" as GUD1
+participant "PeerTransport TCP\nnode1" as PT1
+
+participant "node2\nServerNode" as N2
+participant "PeerMessageHandler\nnode2" as PMH2
+participant "MessageRouter\nnode2" as MR2
+participant "LocalSessionManager\nnode2" as LSM2
+actor "Cliente B" as B
+
+== Cliente A envía mensaje privado ==
+
+A -> N1 : PaqueteMensaje(A, B, texto)
+N1 -> CCH1 : procesar paquete
+CCH1 -> MR1 : routePrivateMessage(A, B, texto)
+
+== Resolver ubicación ==
+
+MR1 -> LSM1 : isLocal(B)
+LSM1 --> MR1 : false
+
+MR1 -> GUD1 : findNodeForUser(B)
+GUD1 --> MR1 : node2
+
+== Reenvío remoto ==
+
+MR1 -> PT1 : sendToNode(node2,\nPRIVATE_MESSAGE_FORWARD)
+PT1 -> N2 : PRIVATE_MESSAGE_FORWARD\nfrom=A,to=B,texto,L
+
+N2 -> PMH2 : recibir NodeMessage
+PMH2 -> MR2 : procesar PRIVATE_MESSAGE_FORWARD
+MR2 -> LSM2 : getLocalSession(B)
+LSM2 --> MR2 : sesión local de B
+
+MR2 -> B : entregar PaqueteMensaje(A, B, texto)
+
+== Confirmación ==
+
+MR2 --> PMH2 : entrega OK
+PMH2 --> N1 : PRIVATE_MESSAGE_ACK(delivered=true)
+N1 -> N1 : registrar métrica y log
+
+@enduml

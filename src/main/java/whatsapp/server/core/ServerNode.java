@@ -1,4 +1,4 @@
-package whatsapp.server;
+package whatsapp.server.core;
 
 import whatsapp.server.config.NodeConfig;
 import whatsapp.server.directory.GlobalUserDirectory;
