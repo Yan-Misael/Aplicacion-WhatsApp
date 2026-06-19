@@ -6,8 +6,8 @@ import whatsapp.server.managers.DistributedGroupManager;
 import whatsapp.server.managers.LocalSessionManager;
 import whatsapp.server.membership.MembershipManager;
 import whatsapp.server.node.NodeInfo;
-import whatsapp.server.peer.NoOpPeerTransport;
 import whatsapp.server.peer.PeerTransport;
+import whatsapp.server.peer.TcpPeerTransport;
 import whatsapp.server.routing.MessageRouter;
 
 import java.io.IOException;
@@ -26,9 +26,8 @@ import java.util.concurrent.ScheduledExecutorService;
  *     <li>Peer distribuido que se comunica con otros nodos servidores.</li>
  * </ol>
  *
- * <p>Esta versión corresponde al scaffold de Persona 1. Inicializa configuración,
- * estado base, managers y thread-pools, pero todavía no implementa comunicación TCP
- * real entre nodos.</p>
+ * <p>Esta versión corresponde a la implementación de Persona 2. Incluye comunicación
+ * TCP real entre nodos mediante {@link whatsapp.server.peer.TcpPeerTransport}.</p>
  */
 public class ServerNode {
 
@@ -70,11 +69,17 @@ public class ServerNode {
         this.localSessionManager = new LocalSessionManager<>();
 
         /*
-         * Placeholder de Persona 1.
+         * Implementación TCP real — Persona 2.
          *
-         * Persona 2 debe reemplazar esta implementación por una basada en sockets TCP.
+         * Reemplaza NoOpPeerTransport con una implementación basada en sockets TCP.
          */
-        this.peerTransport = new NoOpPeerTransport(config.getNodeId());
+        this.peerTransport = new TcpPeerTransport(
+                config.getNodeId(),
+                config.getPeerPort(),
+                peerWorkerPool,
+                membershipManager,
+                config.getPeerSocketTimeoutMs()
+        );
 
         this.messageRouter = new MessageRouter(
                 config.getNodeId(),
@@ -102,8 +107,8 @@ public class ServerNode {
     /**
      * Inicia el nodo servidor.
      *
-     * <p>En esta base inicial solo se levantan componentes arquitectónicos y logs.
-     * La comunicación TCP real será agregada posteriormente.</p>
+     * <p>Levanta el {@link whatsapp.server.peer.PeerListener} inter-nodo y envía
+     * {@code PEER_HELLO} a los peers configurados.</p>
      */
     public void start() {
         log("Iniciando ServerNode");
@@ -120,8 +125,7 @@ public class ServerNode {
 
         peerTransport.start();
 
-        log("Base arquitectónica iniciada correctamente.");
-        log("NOTA: Comunicación TCP inter-nodo pendiente de Persona 2.");
+        log("ServerNode iniciado con comunicación TCP real entre nodos.");
     }
 
     /**

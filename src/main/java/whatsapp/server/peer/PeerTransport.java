@@ -38,4 +38,19 @@ public interface PeerTransport {
      * Detiene el transporte y libera recursos asociados.
      */
     void stop();
+
+    /**
+     * Extrae el siguiente mensaje entrante aún no procesado por tipos
+     * reservados (PEER_HELLO, HEARTBEAT, MEMBERSHIP_UPDATE), o {@code null}
+     * si no hay ninguno pendiente.
+     *
+     * <p><b>Fix Problema 3:</b> antes, esta cola solo era accesible casteando
+     * a {@code TcpPeerTransport}, lo que rompía el diseño por interfaz para
+     * Persona 3/4/5. Ahora el contrato vive aquí, en {@link PeerTransport},
+     * así que {@code ServerNodeContext.getPeerTransport().pollIncoming()}
+     * funciona sin cast y sin conocer la implementación concreta.</p>
+     *
+     * @return el siguiente mensaje pendiente, o {@code null}
+     */
+    NodeMessage pollIncoming();
 }

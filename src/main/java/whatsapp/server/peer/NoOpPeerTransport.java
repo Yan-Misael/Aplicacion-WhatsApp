@@ -71,4 +71,14 @@ public class NoOpPeerTransport implements PeerTransport {
     public void stop() {
         System.out.printf("[%s] NO_OP peer transport detenido%n", nodeId);
     }
+
+    /**
+     * No hay mensajes reales en esta implementación placeholder.
+     *
+     * @return siempre {@code null}
+     */
+    @Override
+    public NodeMessage pollIncoming() {
+        return null;
+    }
 }
