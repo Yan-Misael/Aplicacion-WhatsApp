@@ -1,5 +1,7 @@
 package whatsapp.server.peer;
 
+import whatsapp.server.clock.EventLogger;
+import whatsapp.server.clock.LamportClock;
 import whatsapp.server.membership.MembershipManager;
 import whatsapp.server.messages.NodeMessage;
 import whatsapp.server.messages.PeerHelloAckMessage;
@@ -31,6 +33,8 @@ public class PeerConnectionManager {
     private final MembershipManager membershipManager;
     private final ExecutorService peerWorkerPool;
     private final int peerSocketTimeoutMs;
+    private final LamportClock lamportClock;
+    private final EventLogger eventLogger;
 
     /**
      * Cola de mensajes entrantes no reconocidos, disponible para Persona 3/4/5.
@@ -44,17 +48,23 @@ public class PeerConnectionManager {
      * @param membershipManager   membresía del nodo
      * @param peerWorkerPool      pool de hilos para operaciones de peers
      * @param peerSocketTimeoutMs timeout de socket para peers (ms)
+     * @param lamportClock        reloj lógico de Lamport del nodo
+     * @param eventLogger         logger de eventos con marca lógica
      */
     public PeerConnectionManager(
             String selfNodeId,
             MembershipManager membershipManager,
             ExecutorService peerWorkerPool,
-            int peerSocketTimeoutMs
+            int peerSocketTimeoutMs,
+            LamportClock lamportClock,
+            EventLogger eventLogger
     ) {
         this.selfNodeId = selfNodeId;
         this.membershipManager = membershipManager;
         this.peerWorkerPool = peerWorkerPool;
         this.peerSocketTimeoutMs = peerSocketTimeoutMs;
+        this.lamportClock = lamportClock;
+        this.eventLogger = eventLogger;
     }
 
     // -------------------------------------------------------------------------
@@ -116,13 +126,15 @@ public class PeerConnectionManager {
 
             log("Enviando PEER_HELLO a " + peer.getNodeId() + " " + peer.getHost() + ":" + peer.getPeerPort());
 
+            long ts = lamportClock.tick();
             PeerHelloMessage hello = new PeerHelloMessage(
                     selfNodeId,
                     peer.getNodeId(),
-                    0L, // Lamport completado por Persona 4
+                    ts,
                     membershipManager.getSelf(),
                     membershipManager.getAllNodes()
             );
+            eventLogger.logSend("PEER_HELLO", selfNodeId + "→" + peer.getNodeId(), ts);
 
             peerWorkerPool.submit(() -> doSendAndReadAckWithRetry(peer, hello));
         }
@@ -221,6 +233,12 @@ public class PeerConnectionManager {
 
             if (raw instanceof PeerHelloAckMessage) {
                 PeerHelloAckMessage ack = (PeerHelloAckMessage) raw;
+                long updatedTs = lamportClock.update(ack.getLamportTimestamp());
+                eventLogger.logReceive(
+                        "PEER_HELLO_ACK",
+                        target.getNodeId() + "→" + selfNodeId,
+                        updatedTs
+                );
 
                 if (ack.isAccepted()) {
                     membershipManager.markAlive(target.getNodeId());
@@ -232,7 +250,8 @@ public class PeerConnectionManager {
                         }
                     }
 
-                    log("PEER_HELLO_ACK recibido desde " + target.getNodeId());
+                    log("PEER_HELLO_ACK recibido desde " + target.getNodeId()
+                            + " L=" + updatedTs);
                     log("Peer detectado: " + target.getNodeId());
                 } else {
                     log("PEER_HELLO rechazado por " + target.getNodeId());

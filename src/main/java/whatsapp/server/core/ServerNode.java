@@ -1,5 +1,7 @@
 package whatsapp.server.core;
 
+import whatsapp.server.clock.EventLogger;
+import whatsapp.server.clock.LamportClock;
 import whatsapp.server.config.NodeConfig;
 import whatsapp.server.directory.GlobalUserDirectory;
 import whatsapp.server.managers.DistributedGroupManager;
@@ -48,6 +50,8 @@ public class ServerNode {
 
     private final PeerTransport peerTransport;
     private final MessageRouter messageRouter;
+    private final LamportClock lamportClock;
+    private final EventLogger eventLogger;
 
     private final ServerNodeContext context;
 
@@ -70,6 +74,9 @@ public class ServerNode {
         this.distributedGroupManager = new DistributedGroupManager();
         this.localSessionManager = new LocalSessionManager<>();
 
+        this.lamportClock = new LamportClock();
+        this.eventLogger = new EventLogger(config.getNodeId());
+
         /*
          * Implementación TCP real — Persona 2.
          *
@@ -80,7 +87,9 @@ public class ServerNode {
                 config.getPeerPort(),
                 peerWorkerPool,
                 membershipManager,
-                config.getPeerSocketTimeoutMs()
+                config.getPeerSocketTimeoutMs(),
+                lamportClock,
+                eventLogger
         );
 
         this.messageRouter = new MessageRouter(
@@ -102,7 +111,9 @@ public class ServerNode {
                 distributedGroupManager,
                 localSessionManager,
                 peerTransport,
-                messageRouter
+                messageRouter,
+                lamportClock,
+                eventLogger
         );
     }
 
@@ -135,7 +146,9 @@ public class ServerNode {
         HeartbeatEmitterTask emitterTask = new HeartbeatEmitterTask(
                 config.getNodeId(),
                 membershipManager,
-                peerTransport
+                peerTransport,
+                lamportClock,
+                eventLogger
         );
 
         schedulerPool.scheduleAtFixedRate(
@@ -174,6 +187,9 @@ public class ServerNode {
         log("Deteniendo ServerNode");
 
         peerTransport.stop();
+
+        eventLogger.printSortedByLamport();
+        eventLogger.flushToFile(java.nio.file.Path.of("logs"));
 
         clientWorkerPool.shutdownNow();
         peerWorkerPool.shutdownNow();

@@ -1,5 +1,7 @@
 package whatsapp.server.core;
 
+import whatsapp.server.clock.EventLogger;
+import whatsapp.server.clock.LamportClock;
 import whatsapp.server.config.NodeConfig;
 import whatsapp.server.directory.GlobalUserDirectory;
 import whatsapp.server.managers.DistributedGroupManager;
@@ -31,6 +33,8 @@ public class ServerNodeContext {
     private final LocalSessionManager<Object> localSessionManager;
     private final PeerTransport peerTransport;
     private final MessageRouter messageRouter;
+    private final LamportClock lamportClock;
+    private final EventLogger eventLogger;
 
     /**
      * Crea el contexto de ejecución de un nodo.
@@ -46,6 +50,8 @@ public class ServerNodeContext {
      * @param localSessionManager administrador de sesiones locales
      * @param peerTransport transporte inter-nodo
      * @param messageRouter router de mensajes
+     * @param lamportClock reloj lógico de Lamport del nodo
+     * @param eventLogger logger de eventos con marca lógica
      */
     public ServerNodeContext(
             NodeConfig config,
@@ -58,7 +64,9 @@ public class ServerNodeContext {
             DistributedGroupManager distributedGroupManager,
             LocalSessionManager<Object> localSessionManager,
             PeerTransport peerTransport,
-            MessageRouter messageRouter
+            MessageRouter messageRouter,
+            LamportClock lamportClock,
+            EventLogger eventLogger
     ) {
         this.config = config;
         this.clientWorkerPool = clientWorkerPool;
@@ -71,6 +79,8 @@ public class ServerNodeContext {
         this.localSessionManager = localSessionManager;
         this.peerTransport = peerTransport;
         this.messageRouter = messageRouter;
+        this.lamportClock = lamportClock;
+        this.eventLogger = eventLogger;
     }
 
     public NodeConfig getConfig() {
@@ -115,5 +125,13 @@ public class ServerNodeContext {
 
     public MessageRouter getMessageRouter() {
         return messageRouter;
+    }
+
+    public LamportClock getLamportClock() {
+        return lamportClock;
+    }
+
+    public EventLogger getEventLogger() {
+        return eventLogger;
     }
 }

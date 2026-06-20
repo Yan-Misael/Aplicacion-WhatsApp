@@ -1,5 +1,7 @@
 package whatsapp.server.peer;
 
+import whatsapp.server.clock.EventLogger;
+import whatsapp.server.clock.LamportClock;
 import whatsapp.server.membership.MembershipManager;
 
 import java.io.IOException;
@@ -39,6 +41,8 @@ public class PeerListener implements Runnable {
     private final ExecutorService peerWorkerPool;
     private final MembershipManager membershipManager;
     private final PeerConnectionManager connectionManager;
+    private final LamportClock lamportClock;
+    private final EventLogger eventLogger;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final CountDownLatch readyLatch = new CountDownLatch(1);
@@ -52,19 +56,25 @@ public class PeerListener implements Runnable {
      * @param peerWorkerPool    pool de hilos para procesar mensajes
      * @param membershipManager membresía del nodo local
      * @param connectionManager manager de conexiones salientes
+     * @param lamportClock      reloj lógico de Lamport del nodo
+     * @param eventLogger       logger de eventos con marca lógica
      */
     public PeerListener(
             int peerPort,
             String selfNodeId,
             ExecutorService peerWorkerPool,
             MembershipManager membershipManager,
-            PeerConnectionManager connectionManager
+            PeerConnectionManager connectionManager,
+            LamportClock lamportClock,
+            EventLogger eventLogger
     ) {
         this.peerPort = peerPort;
         this.selfNodeId = selfNodeId;
         this.peerWorkerPool = peerWorkerPool;
         this.membershipManager = membershipManager;
         this.connectionManager = connectionManager;
+        this.lamportClock = lamportClock;
+        this.eventLogger = eventLogger;
     }
 
     /**
@@ -112,7 +122,9 @@ public class PeerListener implements Runnable {
                             peerSocket,
                             membershipManager,
                             connectionManager,
-                            selfNodeId
+                            selfNodeId,
+                            lamportClock,
+                            eventLogger
                     ));
 
                 } catch (SocketException e) {

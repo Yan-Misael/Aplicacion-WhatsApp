@@ -1,0 +1,141 @@
+[node3] Iniciando ServerNode
+[node3] clientPort=5003 peerPort=6003
+[node3] clientWorkerPool=64 peerWorkerPool=16 schedulerPool=4 coordinationExecutor=1
+[node3] Peers configurados:
+[node3]  - node1@localhost:5001:6001 [ALIVE]
+[node3]  - node2@localhost:5002:6002 [ALIVE]
+[node3][TcpPeerTransport] Iniciando TcpPeerTransport en puerto 6003
+[node3][PeerListener] PeerListener escuchando en puerto 6003
+[node3][PeerConnMgr] Enviando PEER_HELLO a node2 localhost:6002
+[node3][L=1   ] SEND     PEER_HELLO                   node3→node2
+[node3][PeerConnMgr] Enviando PEER_HELLO a node1 localhost:6001
+[node3][L=2   ] SEND     PEER_HELLO                   node3→node1
+[node3][TcpPeerTransport] TcpPeerTransport iniciado
+[node3] Emisor de Heartbeats programado cada 2000ms
+[node3] Sweeper de fallos programado. Tolerancia máxima de inactividad: 6000ms
+[node3] ServerNode iniciado con comunicación TCP real entre nodos.
+[node3][PeerConnMgr] PEER_HELLO enviado a node1
+[node3][PeerConnMgr] PEER_HELLO enviado a node2
+[node3][L=7   ] RECEIVE  PEER_HELLO_ACK               node1→node3
+[node3][PeerConnMgr] PEER_HELLO_ACK recibido desde node1 L=7
+[node3][PeerConnMgr] Peer detectado: node1
+[node3][L=8   ] RECEIVE  PEER_HELLO_ACK               node2→node3
+[node3][PeerConnMgr] PEER_HELLO_ACK recibido desde node2 L=8
+[node3][PeerConnMgr] Peer detectado: node2
+[node3][L=9   ] RECEIVE  PEER_HELLO                   node1→node3
+[node3][PeerMsgHandler] Mensaje recibido: type=PEER_HELLO source=node1 L=9
+[node3][PeerMsgHandler] PEER_HELLO recibido desde node1
+[node3][PeerMsgHandler] Peer registrado/actualizado: node1@localhost:5001:6001 [ALIVE]
+[node3][L=10  ] SEND     PEER_HELLO_ACK               node3→node1
+[node3][PeerMsgHandler] PEER_HELLO_ACK enviado a node1 L=10
+[node3][PeerMsgHandler] Peer detectado: node1
+[node3][L=11  ] RECEIVE  PEER_HELLO                   node2→node3
+[node3][PeerMsgHandler] Mensaje recibido: type=PEER_HELLO source=node2 L=11
+[node3][PeerMsgHandler] PEER_HELLO recibido desde node2
+[node3][PeerMsgHandler] Peer registrado/actualizado: node2@localhost:5002:6002 [ALIVE]
+[node3][L=12  ] SEND     PEER_HELLO_ACK               node3→node2
+[node3][PeerMsgHandler] PEER_HELLO_ACK enviado a node2 L=12
+[node3][PeerMsgHandler] Peer detectado: node2
+[node3][L=14  ] RECEIVE  HEARTBEAT                    node1→node3
+[node3][PeerMsgHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=14
+[node3][PeerMsgHandler] HEARTBEAT recibido de node1 L=13
+[node3][L=16  ] RECEIVE  HEARTBEAT                    node2→node3
+[node3][PeerMsgHandler] Mensaje recibido: type=HEARTBEAT source=node2 L=16
+[node3][PeerMsgHandler] HEARTBEAT recibido de node2 L=15
+[node3][L=17  ] SEND     HEARTBEAT                    node3→node2
+[node3][L=18  ] SEND     HEARTBEAT                    node3→node1
+[node3][PeerConnMgr] Mensaje enviado a node2 type=HEARTBEAT L=17
+[node3][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=18
+[node3][L=22  ] RECEIVE  HEARTBEAT                    node1→node3
+[node3][PeerMsgHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=22
+[node3][PeerMsgHandler] HEARTBEAT recibido de node1 L=21
+[node3][L=23  ] RECEIVE  HEARTBEAT                    node2→node3
+[node3][PeerMsgHandler] Mensaje recibido: type=HEARTBEAT source=node2 L=23
+[node3][PeerMsgHandler] HEARTBEAT recibido de node2 L=22
+[node3][L=24  ] SEND     HEARTBEAT                    node3→node2
+[node3][L=25  ] SEND     HEARTBEAT                    node3→node1
+[node3][PeerConnMgr] Mensaje enviado a node2 type=HEARTBEAT L=24
+[node3][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=25
+[node3][L=29  ] RECEIVE  HEARTBEAT                    node1→node3
+[node3][PeerMsgHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=29
+[node3][PeerMsgHandler] HEARTBEAT recibido de node1 L=28
+[node3][L=30  ] RECEIVE  HEARTBEAT                    node2→node3
+[node3][PeerMsgHandler] Mensaje recibido: type=HEARTBEAT source=node2 L=30
+[node3][PeerMsgHandler] HEARTBEAT recibido de node2 L=29
+[node3][L=31  ] SEND     HEARTBEAT                    node3→node2
+[node3][L=32  ] SEND     HEARTBEAT                    node3→node1
+[node3][PeerConnMgr] Mensaje enviado a node2 type=HEARTBEAT L=31
+[node3][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=32
+[node3][L=36  ] RECEIVE  HEARTBEAT                    node1→node3
+[node3][PeerMsgHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=36
+[node3][PeerMsgHandler] HEARTBEAT recibido de node1 L=35
+[node3][L=37  ] RECEIVE  HEARTBEAT                    node2→node3
+[node3][PeerMsgHandler] Mensaje recibido: type=HEARTBEAT source=node2 L=37
+[node3][PeerMsgHandler] HEARTBEAT recibido de node2 L=36
+[node3][L=38  ] SEND     HEARTBEAT                    node3→node2
+[node3][L=39  ] SEND     HEARTBEAT                    node3→node1
+[node3][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=39
+[node3][PeerConnMgr] Mensaje enviado a node2 type=HEARTBEAT L=38
+[node3][L=43  ] RECEIVE  HEARTBEAT                    node1→node3
+[node3][PeerMsgHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=43
+[node3][PeerMsgHandler] HEARTBEAT recibido de node1 L=42
+[node3][L=44  ] RECEIVE  HEARTBEAT                    node2→node3
+[node3][PeerMsgHandler] Mensaje recibido: type=HEARTBEAT source=node2 L=44
+[node3][PeerMsgHandler] HEARTBEAT recibido de node2 L=43
+[node3][L=45  ] SEND     HEARTBEAT                    node3→node2
+[node3][L=46  ] SEND     HEARTBEAT                    node3→node1
+[node3][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=46
+[node3][PeerConnMgr] Mensaje enviado a node2 type=HEARTBEAT L=45
+[node3][L=50  ] RECEIVE  HEARTBEAT                    node1→node3
+[node3][PeerMsgHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=50
+[node3][PeerMsgHandler] HEARTBEAT recibido de node1 L=49
+[node3][L=51  ] RECEIVE  HEARTBEAT                    node2→node3
+[node3][PeerMsgHandler] Mensaje recibido: type=HEARTBEAT source=node2 L=51
+[node3][PeerMsgHandler] HEARTBEAT recibido de node2 L=50
+[node3][L=52  ] SEND     HEARTBEAT                    node3→node2
+[node3][L=53  ] SEND     HEARTBEAT                    node3→node1
+[node3][PeerConnMgr] Mensaje enviado a node2 type=HEARTBEAT L=52
+[node3][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=53
+[node3] Deteniendo ServerNode
+[node3][TcpPeerTransport] Deteniendo TcpPeerTransport
+[node3][PeerListener] PeerListener detenido
+[node3][TcpPeerTransport] TcpPeerTransport detenido
+
+========== LOG DE EVENTOS ORDENADO POR LAMPORT [node3] ==========
+SEQ   L       NODO   EVENTO   TIPO                         DETALLE
+--------------------------------------------------------------------------------
+1     L=1     [node3 ] SEND     PEER_HELLO                   node3→node2
+2     L=2     [node3 ] SEND     PEER_HELLO                   node3→node1
+3     L=7     [node3 ] RECEIVE  PEER_HELLO_ACK               node1→node3
+4     L=8     [node3 ] RECEIVE  PEER_HELLO_ACK               node2→node3
+5     L=9     [node3 ] RECEIVE  PEER_HELLO                   node1→node3
+6     L=10    [node3 ] SEND     PEER_HELLO_ACK               node3→node1
+7     L=11    [node3 ] RECEIVE  PEER_HELLO                   node2→node3
+8     L=12    [node3 ] SEND     PEER_HELLO_ACK               node3→node2
+9     L=14    [node3 ] RECEIVE  HEARTBEAT                    node1→node3
+10    L=16    [node3 ] RECEIVE  HEARTBEAT                    node2→node3
+11    L=17    [node3 ] SEND     HEARTBEAT                    node3→node2
+12    L=18    [node3 ] SEND     HEARTBEAT                    node3→node1
+13    L=22    [node3 ] RECEIVE  HEARTBEAT                    node1→node3
+14    L=23    [node3 ] RECEIVE  HEARTBEAT                    node2→node3
+15    L=24    [node3 ] SEND     HEARTBEAT                    node3→node2
+16    L=25    [node3 ] SEND     HEARTBEAT                    node3→node1
+17    L=29    [node3 ] RECEIVE  HEARTBEAT                    node1→node3
+18    L=30    [node3 ] RECEIVE  HEARTBEAT                    node2→node3
+19    L=31    [node3 ] SEND     HEARTBEAT                    node3→node2
+20    L=32    [node3 ] SEND     HEARTBEAT                    node3→node1
+21    L=36    [node3 ] RECEIVE  HEARTBEAT                    node1→node3
+22    L=37    [node3 ] RECEIVE  HEARTBEAT                    node2→node3
+23    L=38    [node3 ] SEND     HEARTBEAT                    node3→node2
+24    L=39    [node3 ] SEND     HEARTBEAT                    node3→node1
+25    L=43    [node3 ] RECEIVE  HEARTBEAT                    node1→node3
+26    L=44    [node3 ] RECEIVE  HEARTBEAT                    node2→node3
+27    L=45    [node3 ] SEND     HEARTBEAT                    node3→node2
+28    L=46    [node3 ] SEND     HEARTBEAT                    node3→node1
+29    L=50    [node3 ] RECEIVE  HEARTBEAT                    node1→node3
+30    L=51    [node3 ] RECEIVE  HEARTBEAT                    node2→node3
+31    L=52    [node3 ] SEND     HEARTBEAT                    node3→node2
+32    L=53    [node3 ] SEND     HEARTBEAT                    node3→node1
+================================================================================
+[node3][EventLogger] Log escrito en /Users/felipeastudillo/Desktop/Proyectos/Universidad/Proyecto_Paralela/Parte_Fin<l/Aplicacion-WhatsApp/logs/events-node3.log (32 eventos)
+[node3] ServerNode detenido

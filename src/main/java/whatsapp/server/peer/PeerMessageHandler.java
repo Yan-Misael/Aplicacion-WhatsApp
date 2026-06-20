@@ -1,5 +1,7 @@
 package whatsapp.server.peer;
 
+import whatsapp.server.clock.EventLogger;
+import whatsapp.server.clock.LamportClock;
 import whatsapp.server.membership.MembershipManager;
 import whatsapp.server.messages.HeartbeatMessage;
 import whatsapp.server.messages.MembershipUpdateMessage;
@@ -33,17 +35,23 @@ public class PeerMessageHandler implements Runnable {
     private final MembershipManager membershipManager;
     private final PeerConnectionManager connectionManager;
     private final String selfNodeId;
+    private final LamportClock lamportClock;
+    private final EventLogger eventLogger;
 
     public PeerMessageHandler(
             Socket socket,
             MembershipManager membershipManager,
             PeerConnectionManager connectionManager,
-            String selfNodeId
+            String selfNodeId,
+            LamportClock lamportClock,
+            EventLogger eventLogger
     ) {
         this.socket = socket;
         this.membershipManager = membershipManager;
         this.connectionManager = connectionManager;
         this.selfNodeId = selfNodeId;
+        this.lamportClock = lamportClock;
+        this.eventLogger = eventLogger;
     }
 
     @Override
@@ -73,6 +81,14 @@ public class PeerMessageHandler implements Runnable {
 
             NodeMessage message = (NodeMessage) raw;
 
+            // Regla de Lamport al recibir: local = max(local, recibido) + 1
+            long updatedTs = lamportClock.update(message.getLamportTimestamp());
+            eventLogger.logReceive(
+                    message.getType().name(),
+                    message.getSourceNodeId() + "→" + selfNodeId,
+                    updatedTs
+            );
+
             // Actualizar lastSeen en membresía
             membershipManager.markAlive(message.getSourceNodeId());
             NodeInfo senderInfo = membershipManager.getNode(message.getSourceNodeId()).orElse(null);
@@ -82,7 +98,7 @@ public class PeerMessageHandler implements Runnable {
 
             log("Mensaje recibido: type=" + message.getType()
                     + " source=" + message.getSourceNodeId()
-                    + " L=" + message.getLamportTimestamp());
+                    + " L=" + updatedTs);
 
             switch (message.getType()) {
                 case PEER_HELLO:
@@ -94,7 +110,7 @@ public class PeerMessageHandler implements Runnable {
                     break;
 
                 case HEARTBEAT:
-                    handleHeartbeat(message, out);
+                    handleHeartbeat(message);
                     break;
 
                 default:
@@ -139,10 +155,11 @@ public class PeerMessageHandler implements Runnable {
         }
 
         // Responder con PEER_HELLO_ACK en la misma conexión
+        long ackTs = lamportClock.tick();
         PeerHelloAckMessage ack = new PeerHelloAckMessage(
                 selfNodeId,
                 sourceId,
-                0L, // Lamport se completará por Persona 4
+                ackTs,
                 true,
                 membershipManager.getSelf(),
                 membershipManager.getAllNodes()
@@ -151,7 +168,8 @@ public class PeerMessageHandler implements Runnable {
         out.writeObject(ack);
         out.flush();
 
-        log("PEER_HELLO_ACK enviado a " + sourceId);
+        eventLogger.logSend("PEER_HELLO_ACK", selfNodeId + "→" + sourceId, ackTs);
+        log("PEER_HELLO_ACK enviado a " + sourceId + " L=" + ackTs);
         log("Peer detectado: " + sourceId);
     }
 
@@ -167,22 +185,11 @@ public class PeerMessageHandler implements Runnable {
         }
     }
 
-    private void handleHeartbeat(NodeMessage hb, ObjectOutputStream out) throws IOException {
-        // Envia el ACK de vuelta al emisor para que no lo declare muerto
-        HeartbeatMessage ack = new HeartbeatMessage(
-                selfNodeId, 
-                hb.getSourceNodeId(), 
-                0L // Lamport placeholder
-        );
-        
-        // Transformamos temporalmente el tipo del NodeMessage para que sea un ACK.
-        // Lo ideal será crear un HeartbeatAckMessage o agregar un flag boolean isAck al HeartbeatMessage.
-        // Pero asumiendo que usarán el NodeMessageType.HEARTBEAT_ACK:
-        
-        out.writeObject(new NodeMessage(selfNodeId, hb.getSourceNodeId(), whatsapp.server.messages.NodeMessageType.HEARTBEAT_ACK, 0L) {
-            private static final long serialVersionUID = 1L;
-        });
-        out.flush();
+    private void handleHeartbeat(NodeMessage hb) {
+        // La detección de fallos funciona por lastSeenMillis (actualizado en run() con touch()).
+        // No se envía ACK porque doSend usa fire-and-forget y ya cierra el socket antes
+        // de que el receptor pueda escribir una respuesta — escribir aquí provocaba Broken pipe.
+        log("HEARTBEAT recibido de " + hb.getSourceNodeId() + " L=" + hb.getLamportTimestamp());
     }
 
     // -------------------------------------------------------------------------
