@@ -4,13 +4,14 @@ import whatsapp.server.clock.EventLogger;
 import whatsapp.server.clock.LamportClock;
 import whatsapp.server.config.NodeConfig;
 import whatsapp.server.directory.GlobalUserDirectory;
+import whatsapp.server.election.BullyElectionCoordinator;
 import whatsapp.server.managers.DistributedGroupManager;
 import whatsapp.server.managers.LocalSessionManager;
 import whatsapp.server.membership.MembershipManager;
+import whatsapp.server.mutex.RicartAgrawalaCoordinator;
 import whatsapp.server.node.NodeInfo;
 import whatsapp.server.peer.HeartbeatEmitterTask;
 import whatsapp.server.peer.HeartbeatSweeperTask;
-import whatsapp.server.peer.PeerTransport;
 import whatsapp.server.peer.TcpPeerTransport;
 import whatsapp.server.routing.MessageRouter;
 
@@ -30,8 +31,11 @@ import java.util.concurrent.ScheduledExecutorService;
  *     <li>Peer distribuido que se comunica con otros nodos servidores.</li>
  * </ol>
  *
- * <p>Esta versión corresponde a la implementación de Persona 2. Incluye comunicación
- * TCP real entre nodos mediante {@link whatsapp.server.peer.TcpPeerTransport}.</p>
+ * <p>Esta versión implementa el punto 2.3 de coordinación distribuida:</p>
+ * <ul>
+ *   <li><b>Ricart-Agrawala</b>: exclusión mutua sobre GROUP_REGISTRY.</li>
+ *   <li><b>Bully</b>: elección de coordinador al detectar caída.</li>
+ * </ul>
  */
 public class ServerNode {
 
@@ -48,40 +52,34 @@ public class ServerNode {
     private final DistributedGroupManager distributedGroupManager;
     private final LocalSessionManager<Object> localSessionManager;
 
-    private final PeerTransport peerTransport;
+    private final TcpPeerTransport peerTransport;
     private final MessageRouter messageRouter;
     private final LamportClock lamportClock;
     private final EventLogger eventLogger;
 
+    private final RicartAgrawalaCoordinator ricartCoordinator;
+    private final BullyElectionCoordinator bullyCoordinator;
+
     private final ServerNodeContext context;
 
-    /**
-     * Construye un nodo servidor a partir de una configuración.
-     *
-     * @param config configuración del nodo
-     */
     public ServerNode(NodeConfig config) {
         this.config = config;
         this.selfInfo = config.toNodeInfo();
 
-        this.clientWorkerPool = Executors.newFixedThreadPool(config.getClientPoolSize());
-        this.peerWorkerPool = Executors.newFixedThreadPool(config.getPeerPoolSize());
-        this.schedulerPool = Executors.newScheduledThreadPool(config.getSchedulerPoolSize());
+        this.clientWorkerPool  = Executors.newFixedThreadPool(config.getClientPoolSize());
+        this.peerWorkerPool    = Executors.newFixedThreadPool(config.getPeerPoolSize());
+        this.schedulerPool     = Executors.newScheduledThreadPool(config.getSchedulerPoolSize());
         this.coordinationExecutor = Executors.newSingleThreadExecutor();
 
-        this.membershipManager = new MembershipManager(selfInfo, config.getPeers());
-        this.globalUserDirectory = new GlobalUserDirectory();
+        this.membershipManager     = new MembershipManager(selfInfo, config.getPeers());
+        this.globalUserDirectory   = new GlobalUserDirectory();
         this.distributedGroupManager = new DistributedGroupManager();
-        this.localSessionManager = new LocalSessionManager<>();
+        this.localSessionManager   = new LocalSessionManager<>();
 
         this.lamportClock = new LamportClock();
-        this.eventLogger = new EventLogger(config.getNodeId());
+        this.eventLogger  = new EventLogger(config.getNodeId());
 
-        /*
-         * Implementación TCP real — Persona 2.
-         *
-         * Reemplaza NoOpPeerTransport con una implementación basada en sockets TCP.
-         */
+        // Transporte TCP (sin coordinadores aún — se inyectan tras crearlos)
         this.peerTransport = new TcpPeerTransport(
                 config.getNodeId(),
                 config.getPeerPort(),
@@ -100,6 +98,33 @@ public class ServerNode {
                 peerTransport
         );
 
+        // --- Coordinación distribuida (Punto 2.3) ---
+
+        // Ricart-Agrawala: exclusión mutua sobre GROUP_REGISTRY
+        this.ricartCoordinator = new RicartAgrawalaCoordinator(
+                config.getNodeId(),
+                membershipManager,
+                peerTransport,
+                lamportClock,
+                eventLogger
+        );
+
+        // Bully: elección de coordinador
+        this.bullyCoordinator = new BullyElectionCoordinator(
+                config.getNodeId(),
+                membershipManager,
+                peerTransport,
+                lamportClock,
+                eventLogger,
+                schedulerPool
+        );
+
+        // Inyectar coordinadores en el listener ANTES de llamar a start()
+        peerTransport.setCoordinators(ricartCoordinator, bullyCoordinator);
+
+        // Inyectar R-A en DistributedGroupManager para proteger operaciones de escritura
+        distributedGroupManager.setRicartCoordinator(ricartCoordinator);
+
         this.context = new ServerNodeContext(
                 config,
                 clientWorkerPool,
@@ -113,15 +138,14 @@ public class ServerNode {
                 peerTransport,
                 messageRouter,
                 lamportClock,
-                eventLogger
+                eventLogger,
+                ricartCoordinator,
+                bullyCoordinator
         );
     }
 
     /**
-     * Inicia el nodo servidor.
-     *
-     * <p>Levanta el {@link whatsapp.server.peer.PeerListener} inter-nodo y envía
-     * {@code PEER_HELLO} a los peers configurados.</p>
+     * Inicia el nodo: levanta el PeerListener, conecta con peers y arranca heartbeats.
      */
     public void start() {
         log("Iniciando ServerNode");
@@ -136,13 +160,12 @@ public class ServerNode {
             log(" - " + peer);
         }
 
+        // Los coordinadores ya están inyectados — ahora sí arrancamos el transporte
         peerTransport.start();
-        
-        // --- Tolerancia a Fallos ---
-        long heartbeatInterval = config.getHeartbeatIntervalMs();
-        long heartbeatTimeout = config.getHeartbeatTimeoutMs();
 
-        // Tarea que envía los latidos
+        long heartbeatInterval = config.getHeartbeatIntervalMs();
+        long heartbeatTimeout  = config.getHeartbeatTimeoutMs();
+
         HeartbeatEmitterTask emitterTask = new HeartbeatEmitterTask(
                 config.getNodeId(),
                 membershipManager,
@@ -153,35 +176,65 @@ public class ServerNode {
 
         schedulerPool.scheduleAtFixedRate(
                 emitterTask,
-                heartbeatInterval, 
-                heartbeatInterval, 
+                heartbeatInterval,
+                heartbeatInterval,
                 java.util.concurrent.TimeUnit.MILLISECONDS
         );
         log("Emisor de Heartbeats programado cada " + heartbeatInterval + "ms");
 
-        // Tarea que recolecta los fallos (Sweeper)
+        // Sweeper ahora notifica a ambos coordinadores al detectar fallos
         HeartbeatSweeperTask sweeperTask = new HeartbeatSweeperTask(
                 config.getNodeId(),
                 membershipManager,
-                heartbeatTimeout
+                heartbeatTimeout,
+                ricartCoordinator,
+                bullyCoordinator
         );
 
-        // Se ejecuta un poco más seguido que el timeout para detectar la caída lo más pronto posible
         schedulerPool.scheduleAtFixedRate(
                 sweeperTask,
-                heartbeatTimeout, // Retardo inicial para dar tiempo al arranque
-                heartbeatInterval, // Usa el mismo ritmo del intervalo base para chequear
+                heartbeatTimeout,
+                heartbeatInterval,
                 java.util.concurrent.TimeUnit.MILLISECONDS
         );
-        log("Sweeper de fallos programado. Tolerancia máxima de inactividad: " + heartbeatTimeout + "ms");
-        
-        log("ServerNode iniciado con comunicación TCP real entre nodos.");
+        log("Sweeper de fallos programado. Tolerancia máxima: " + heartbeatTimeout + "ms");
+
+        // Demo de Ricart-Agrawala: todos los nodos intentan crear el mismo grupo
+        // simultáneamente para demostrar exclusión mutua distribuida.
+        schedulerPool.schedule(
+                () -> {
+                    String grupoDemo = "grupo-demo-ricart";
+                    log("[DEMO R-A] Intentando crear grupo '" + grupoDemo + "' con mutex distribuido...");
+                    boolean creado = distributedGroupManager.createGroup(
+                            grupoDemo, java.util.Set.of(config.getNodeId()));
+                    if (creado) {
+                        log("[DEMO R-A] Grupo '" + grupoDemo + "' CREADO exitosamente por " + config.getNodeId());
+                    } else {
+                        log("[DEMO R-A] Grupo '" + grupoDemo + "' ya existe — otro nodo llegó primero.");
+                    }
+                },
+                heartbeatInterval * 3,
+                java.util.concurrent.TimeUnit.MILLISECONDS
+        );
+
+        // Elección inicial: si nadie conoce al coordinador aún, disparar Bully
+        // tras un retardo para dar tiempo a que los PEER_HELLO se completen.
+        schedulerPool.schedule(
+                () -> {
+                    if (bullyCoordinator.getCurrentCoordinator() == null) {
+                        log("Sin coordinador conocido — iniciando elección Bully inicial");
+                        bullyCoordinator.startElection();
+                    }
+                },
+                heartbeatInterval * 2,
+                java.util.concurrent.TimeUnit.MILLISECONDS
+        );
+
+        log("ServerNode iniciado — Ricart-Agrawala y Bully activos.");
     }
 
     /**
      * Detiene el nodo y libera recursos.
-     *
-     * <p>Se cierran los pools para evitar hilos vivos después de terminar el nodo.</p>
      */
     public void stop() {
         log("Deteniendo ServerNode");
@@ -199,28 +252,14 @@ public class ServerNode {
         log("ServerNode detenido");
     }
 
-    /**
-     * @return contexto interno del nodo
-     */
     public ServerNodeContext getContext() {
         return context;
     }
 
-    /**
-     * Imprime un mensaje de log con prefijo del nodo.
-     *
-     * @param message mensaje a registrar
-     */
     private void log(String message) {
         System.out.printf("[%s] %s%n", config.getNodeId(), message);
     }
 
-    /**
-     * Punto de entrada para ejecutar un {@code ServerNode}.
-     *
-     * @param args argumentos de línea de comandos.
-     *             Se espera un argumento: ruta al archivo de configuración.
-     */
     public static void main(String[] args) {
         if (args.length < 1) {
             System.err.println("Uso: java whatsapp.server.ServerNode <config.properties>");

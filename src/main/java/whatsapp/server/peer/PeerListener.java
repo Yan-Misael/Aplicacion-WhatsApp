@@ -2,7 +2,9 @@ package whatsapp.server.peer;
 
 import whatsapp.server.clock.EventLogger;
 import whatsapp.server.clock.LamportClock;
+import whatsapp.server.election.BullyElectionCoordinator;
 import whatsapp.server.membership.MembershipManager;
+import whatsapp.server.mutex.RicartAgrawalaCoordinator;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -48,6 +50,10 @@ public class PeerListener implements Runnable {
     private final CountDownLatch readyLatch = new CountDownLatch(1);
     private ServerSocket serverSocket;
 
+    // Coordinadores de coordinación distribuida (inyectados tras creación del transporte)
+    private volatile RicartAgrawalaCoordinator ricartCoordinator;
+    private volatile BullyElectionCoordinator bullyCoordinator;
+
     /**
      * Construye el listener inter-nodo.
      *
@@ -75,6 +81,15 @@ public class PeerListener implements Runnable {
         this.connectionManager = connectionManager;
         this.lamportClock = lamportClock;
         this.eventLogger = eventLogger;
+    }
+
+    /**
+     * Inyecta los coordinadores de coordinación distribuida.
+     * Debe llamarse ANTES de {@link #start()} / {@link #openServerSocket()}.
+     */
+    public void setCoordinators(RicartAgrawalaCoordinator ricart, BullyElectionCoordinator bully) {
+        this.ricartCoordinator = ricart;
+        this.bullyCoordinator = bully;
     }
 
     /**
@@ -124,7 +139,9 @@ public class PeerListener implements Runnable {
                             connectionManager,
                             selfNodeId,
                             lamportClock,
-                            eventLogger
+                            eventLogger,
+                            ricartCoordinator,
+                            bullyCoordinator
                     ));
 
                 } catch (SocketException e) {

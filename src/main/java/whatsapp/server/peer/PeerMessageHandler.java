@@ -2,12 +2,17 @@ package whatsapp.server.peer;
 
 import whatsapp.server.clock.EventLogger;
 import whatsapp.server.clock.LamportClock;
+import whatsapp.server.election.BullyElectionCoordinator;
 import whatsapp.server.membership.MembershipManager;
+import whatsapp.server.messages.ElectionMessage;
 import whatsapp.server.messages.HeartbeatMessage;
 import whatsapp.server.messages.MembershipUpdateMessage;
+import whatsapp.server.messages.MutexRequestMessage;
 import whatsapp.server.messages.NodeMessage;
+import whatsapp.server.messages.NodeMessageType;
 import whatsapp.server.messages.PeerHelloAckMessage;
 import whatsapp.server.messages.PeerHelloMessage;
+import whatsapp.server.mutex.RicartAgrawalaCoordinator;
 import whatsapp.server.node.NodeInfo;
 
 import java.io.IOException;
@@ -19,15 +24,11 @@ import java.net.Socket;
  * Procesa un mensaje recibido desde otro nodo servidor.
  *
  * <p>Cada instancia maneja una única conexión entrante de un peer. Lee el
- * {@link NodeMessage}, actualiza la membresía y despacha según el tipo.
- * Los mensajes que corresponden a Persona 3, 4 o 5 se registran y se descartan
- * sin error para mantener compatibilidad futura.</p>
+ * {@link NodeMessage}, actualiza la membresía y despacha según el tipo.</p>
  *
  * <p><b>Protocolo de handshake ObjectStream:</b> Para evitar el deadlock clásico
  * de Java Object serialization, AMBOS lados deben crear su ObjectOutputStream
- * y hacer flush ANTES de crear el ObjectInputStream. El emisor
- * (PeerConnectionManager#doSendAndReadAck) ya lo hace. Este receptor también
- * debe seguir el mismo orden: OOS + flush → OIS → readObject.</p>
+ * y hacer flush ANTES de crear el ObjectInputStream.</p>
  */
 public class PeerMessageHandler implements Runnable {
 
@@ -37,6 +38,8 @@ public class PeerMessageHandler implements Runnable {
     private final String selfNodeId;
     private final LamportClock lamportClock;
     private final EventLogger eventLogger;
+    private final RicartAgrawalaCoordinator ricartCoordinator;
+    private final BullyElectionCoordinator bullyCoordinator;
 
     public PeerMessageHandler(
             Socket socket,
@@ -44,7 +47,9 @@ public class PeerMessageHandler implements Runnable {
             PeerConnectionManager connectionManager,
             String selfNodeId,
             LamportClock lamportClock,
-            EventLogger eventLogger
+            EventLogger eventLogger,
+            RicartAgrawalaCoordinator ricartCoordinator,
+            BullyElectionCoordinator bullyCoordinator
     ) {
         this.socket = socket;
         this.membershipManager = membershipManager;
@@ -52,6 +57,8 @@ public class PeerMessageHandler implements Runnable {
         this.selfNodeId = selfNodeId;
         this.lamportClock = lamportClock;
         this.eventLogger = eventLogger;
+        this.ricartCoordinator = ricartCoordinator;
+        this.bullyCoordinator = bullyCoordinator;
     }
 
     @Override
@@ -60,17 +67,11 @@ public class PeerMessageHandler implements Runnable {
             socket.setSoTimeout(10_000);
 
             // CRÍTICO: crear ObjectOutputStream primero y hacer flush ANTES de
-            // crear ObjectInputStream. Esto es obligatorio en Java para evitar
-            // el deadlock del handshake de headers:
-            //   - El emisor (doSendAndReadAck) crea OOS → flush → OIS
-            //   - El receptor (aquí) debe hacer lo mismo: OOS → flush → OIS
-            // Si cualquiera de los dos crea OIS antes de que el otro haya
-            // enviado su header via OOS+flush, ambos quedan bloqueados
-            // esperando el header del otro → SocketTimeoutException al expirar.
+            // crear ObjectInputStream para evitar el deadlock de headers.
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-            out.flush(); // enviar header inmediatamente
+            out.flush();
 
-            ObjectInputStream in = new ObjectInputStream(socket.getInputStream()); // recibir header del emisor
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 
             Object raw = in.readObject();
 
@@ -113,8 +114,30 @@ public class PeerMessageHandler implements Runnable {
                     handleHeartbeat(message);
                     break;
 
+                // ---- Ricart-Agrawala ----
+                case MUTEX_REQUEST:
+                    handleMutexRequest((MutexRequestMessage) message);
+                    break;
+
+                case MUTEX_REPLY:
+                    handleMutexReply(message);
+                    break;
+
+                // ---- Bully Election ----
+                case ELECTION:
+                    handleElection((ElectionMessage) message);
+                    break;
+
+                case ELECTION_OK:
+                    handleElectionOk(message);
+                    break;
+
+                case ELECTION_COORDINATOR:
+                    handleElectionCoordinator((ElectionMessage) message);
+                    break;
+
                 default:
-                    // Mensajes futuros (Persona 3, 4, 5) — registrar y delegar
+                    // Mensajes futuros (Persona 3, 5) — registrar y encolar
                     log("Tipo de mensaje pendiente de implementación: " + message.getType()
                             + " desde " + message.getSourceNodeId());
                     connectionManager.enqueueIncoming(message);
@@ -132,7 +155,7 @@ public class PeerMessageHandler implements Runnable {
     }
 
     // -------------------------------------------------------------------------
-    // Manejadores específicos
+    // Manejadores de mensajes existentes
     // -------------------------------------------------------------------------
 
     private void handlePeerHello(PeerHelloMessage hello, ObjectOutputStream out) throws IOException {
@@ -140,21 +163,18 @@ public class PeerMessageHandler implements Runnable {
 
         log("PEER_HELLO recibido desde " + sourceId);
 
-        // Registrar o actualizar el nodo emisor en la membresía
         NodeInfo senderInfo = hello.getNodeInfo();
         if (senderInfo != null) {
             membershipManager.addOrUpdateNode(senderInfo);
             log("Peer registrado/actualizado: " + senderInfo);
         }
 
-        // Registrar peers adicionales que el emisor conoce
         for (NodeInfo peer : hello.getKnownPeers()) {
             if (!peer.getNodeId().equals(selfNodeId)) {
                 membershipManager.addOrUpdateNode(peer);
             }
         }
 
-        // Responder con PEER_HELLO_ACK en la misma conexión
         long ackTs = lamportClock.tick();
         PeerHelloAckMessage ack = new PeerHelloAckMessage(
                 selfNodeId,
@@ -186,10 +206,51 @@ public class PeerMessageHandler implements Runnable {
     }
 
     private void handleHeartbeat(NodeMessage hb) {
-        // La detección de fallos funciona por lastSeenMillis (actualizado en run() con touch()).
-        // No se envía ACK porque doSend usa fire-and-forget y ya cierra el socket antes
-        // de que el receptor pueda escribir una respuesta — escribir aquí provocaba Broken pipe.
         log("HEARTBEAT recibido de " + hb.getSourceNodeId() + " L=" + hb.getLamportTimestamp());
+    }
+
+    // -------------------------------------------------------------------------
+    // Manejadores de Ricart-Agrawala
+    // -------------------------------------------------------------------------
+
+    private void handleMutexRequest(MutexRequestMessage req) {
+        log("MUTEX_REQUEST de " + req.getSourceNodeId()
+                + " recurso=" + req.getResourceId()
+                + " L=" + req.getLamportTimestamp());
+        ricartCoordinator.onMutexRequest(req.getSourceNodeId(), req.getLamportTimestamp());
+    }
+
+    private void handleMutexReply(NodeMessage reply) {
+        log("MUTEX_REPLY de " + reply.getSourceNodeId() + " L=" + reply.getLamportTimestamp());
+        ricartCoordinator.onMutexReply(reply.getSourceNodeId());
+    }
+
+    // -------------------------------------------------------------------------
+    // Manejadores de Bully Election
+    // -------------------------------------------------------------------------
+
+    private void handleElection(ElectionMessage msg) {
+        String senderId = msg.getSourceNodeId();
+        if (senderId.compareTo(selfNodeId) < 0) {
+            // Solo respondemos si el remitente tiene ID menor (correcto para Bully)
+            log("ELECTION de " + senderId + " (ID menor) — respondiendo OK");
+            bullyCoordinator.onElectionMessage(senderId);
+        } else {
+            log("ELECTION de " + senderId + " (ID mayor o igual) — ignorado");
+        }
+    }
+
+    private void handleElectionOk(NodeMessage msg) {
+        log("ELECTION_OK de " + msg.getSourceNodeId());
+        bullyCoordinator.onElectionOk(msg.getSourceNodeId());
+    }
+
+    private void handleElectionCoordinator(ElectionMessage msg) {
+        String newCoordinator = msg.getCoordinatorId() != null
+                ? msg.getCoordinatorId()
+                : msg.getSourceNodeId();
+        log("ELECTION_COORDINATOR: nuevo coordinador = " + newCoordinator);
+        bullyCoordinator.onCoordinatorAnnouncement(newCoordinator);
     }
 
     // -------------------------------------------------------------------------

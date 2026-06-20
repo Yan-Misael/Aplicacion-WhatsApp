@@ -2,8 +2,10 @@ package whatsapp.server.peer;
 
 import whatsapp.server.clock.EventLogger;
 import whatsapp.server.clock.LamportClock;
+import whatsapp.server.election.BullyElectionCoordinator;
 import whatsapp.server.membership.MembershipManager;
 import whatsapp.server.messages.NodeMessage;
+import whatsapp.server.mutex.RicartAgrawalaCoordinator;
 
 import java.util.concurrent.ExecutorService;
 
@@ -158,6 +160,14 @@ public class TcpPeerTransport implements PeerTransport {
     @Override
     public void broadcast(NodeMessage message) {
         connectionManager.broadcastToPeers(message);
+    }
+
+    /**
+     * Inyecta los coordinadores de coordinación distribuida en el {@link PeerListener}.
+     * Debe llamarse ANTES de {@link #start()}.
+     */
+    public void setCoordinators(RicartAgrawalaCoordinator ricart, BullyElectionCoordinator bully) {
+        peerListener.setCoordinators(ricart, bully);
     }
 
     // -------------------------------------------------------------------------

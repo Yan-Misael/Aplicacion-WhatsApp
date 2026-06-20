@@ -116,5 +116,20 @@ public enum NodeMessageType {
     /**
      * Mensaje genérico de error entre nodos.
      */
-    NODE_ERROR
+    NODE_ERROR,
+
+    /**
+     * Inicia una elección de coordinador (Bully): enviado a nodos con ID mayor.
+     */
+    ELECTION,
+
+    /**
+     * Respuesta a ELECTION: indica que el respondedor tiene ID mayor y participará.
+     */
+    ELECTION_OK,
+
+    /**
+     * Anuncia el resultado de la elección: el nuevo coordinador se presenta.
+     */
+    ELECTION_COORDINATOR
 }
