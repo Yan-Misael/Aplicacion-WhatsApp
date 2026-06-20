@@ -6,6 +6,8 @@ import whatsapp.server.managers.DistributedGroupManager;
 import whatsapp.server.managers.LocalSessionManager;
 import whatsapp.server.membership.MembershipManager;
 import whatsapp.server.node.NodeInfo;
+import whatsapp.server.peer.HeartbeatEmitterTask;
+import whatsapp.server.peer.HeartbeatSweeperTask;
 import whatsapp.server.peer.PeerTransport;
 import whatsapp.server.peer.TcpPeerTransport;
 import whatsapp.server.routing.MessageRouter;
@@ -124,7 +126,42 @@ public class ServerNode {
         }
 
         peerTransport.start();
+        
+        // --- Tolerancia a Fallos ---
+        long heartbeatInterval = config.getHeartbeatIntervalMs();
+        long heartbeatTimeout = config.getHeartbeatTimeoutMs();
 
+        // Tarea que envía los latidos
+        HeartbeatEmitterTask emitterTask = new HeartbeatEmitterTask(
+                config.getNodeId(),
+                membershipManager,
+                peerTransport
+        );
+
+        schedulerPool.scheduleAtFixedRate(
+                emitterTask,
+                heartbeatInterval, 
+                heartbeatInterval, 
+                java.util.concurrent.TimeUnit.MILLISECONDS
+        );
+        log("Emisor de Heartbeats programado cada " + heartbeatInterval + "ms");
+
+        // Tarea que recolecta los fallos (Sweeper)
+        HeartbeatSweeperTask sweeperTask = new HeartbeatSweeperTask(
+                config.getNodeId(),
+                membershipManager,
+                heartbeatTimeout
+        );
+
+        // Se ejecuta un poco más seguido que el timeout para detectar la caída lo más pronto posible
+        schedulerPool.scheduleAtFixedRate(
+                sweeperTask,
+                heartbeatTimeout, // Retardo inicial para dar tiempo al arranque
+                heartbeatInterval, // Usa el mismo ritmo del intervalo base para chequear
+                java.util.concurrent.TimeUnit.MILLISECONDS
+        );
+        log("Sweeper de fallos programado. Tolerancia máxima de inactividad: " + heartbeatTimeout + "ms");
+        
         log("ServerNode iniciado con comunicación TCP real entre nodos.");
     }
 

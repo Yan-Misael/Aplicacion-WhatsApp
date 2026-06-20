@@ -1,6 +1,7 @@
 package whatsapp.server.peer;
 
 import whatsapp.server.membership.MembershipManager;
+import whatsapp.server.messages.HeartbeatMessage;
 import whatsapp.server.messages.MembershipUpdateMessage;
 import whatsapp.server.messages.NodeMessage;
 import whatsapp.server.messages.PeerHelloAckMessage;
@@ -167,8 +168,21 @@ public class PeerMessageHandler implements Runnable {
     }
 
     private void handleHeartbeat(NodeMessage hb, ObjectOutputStream out) throws IOException {
-        // Respuesta mínima para que Persona 5 conecte la lógica completa
-        log("HEARTBEAT recibido desde " + hb.getSourceNodeId() + " — ACK pendiente de Persona 5");
+        // Envia el ACK de vuelta al emisor para que no lo declare muerto
+        HeartbeatMessage ack = new HeartbeatMessage(
+                selfNodeId, 
+                hb.getSourceNodeId(), 
+                0L // Lamport placeholder
+        );
+        
+        // Transformamos temporalmente el tipo del NodeMessage para que sea un ACK.
+        // Lo ideal será crear un HeartbeatAckMessage o agregar un flag boolean isAck al HeartbeatMessage.
+        // Pero asumiendo que usarán el NodeMessageType.HEARTBEAT_ACK:
+        
+        out.writeObject(new NodeMessage(selfNodeId, hb.getSourceNodeId(), whatsapp.server.messages.NodeMessageType.HEARTBEAT_ACK, 0L) {
+            private static final long serialVersionUID = 1L;
+        });
+        out.flush();
     }
 
     // -------------------------------------------------------------------------
