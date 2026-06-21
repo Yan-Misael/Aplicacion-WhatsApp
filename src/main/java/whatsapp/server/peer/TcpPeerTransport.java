@@ -1,13 +1,9 @@
 package whatsapp.server.peer;
 
-import java.util.concurrent.ExecutorService;
-
-import whatsapp.server.directory.GlobalUserDirectory;
-import whatsapp.server.handlers.ManejadorCliente;
-import whatsapp.server.managers.DistributedGroupManager;
-import whatsapp.server.managers.LocalSessionManager;
 import whatsapp.server.membership.MembershipManager;
 import whatsapp.server.messages.NodeMessage;
+
+import java.util.concurrent.ExecutorService;
 
 /**
  * Implementación TCP real de {@link PeerTransport}.
@@ -43,19 +39,13 @@ public class TcpPeerTransport implements PeerTransport {
      * @param peerWorkerPool      pool de hilos para operaciones inter-nodo
      * @param membershipManager   membresía del nodo
      * @param peerSocketTimeoutMs timeout de socket para conexiones a peers (ms)
-     * @param localSessionManager administrador de sesiones locales (necesario para entregar mensajes a clientes)
-     * @param globalUserDirectory directorio global de usuarios (necesario para enrutamiento)
-     * @param distributedGroupManager administrador distribuido de grupos (necesario para mensajes grupales)
      */
     public TcpPeerTransport(
             String selfNodeId,
             int peerPort,
             ExecutorService peerWorkerPool,
             MembershipManager membershipManager,
-            int peerSocketTimeoutMs,
-            LocalSessionManager<ManejadorCliente> localSessionManager,
-            GlobalUserDirectory globalUserDirectory,
-            DistributedGroupManager distributedGroupManager
+            int peerSocketTimeoutMs
     ) {
         this.selfNodeId = selfNodeId;
         this.peerPort = peerPort;
@@ -66,7 +56,9 @@ public class TcpPeerTransport implements PeerTransport {
                 selfNodeId,
                 membershipManager,
                 peerWorkerPool,
-                peerSocketTimeoutMs
+                peerSocketTimeoutMs,
+                lamportClock,
+                eventLogger
         );
 
         // Ahora pasamos los nuevos managers al PeerListener
@@ -75,10 +67,7 @@ public class TcpPeerTransport implements PeerTransport {
                 selfNodeId,
                 peerWorkerPool,
                 membershipManager,
-                connectionManager,
-                localSessionManager,
-                globalUserDirectory,
-                distributedGroupManager
+                connectionManager
         );
     }
 
@@ -162,6 +151,14 @@ public class TcpPeerTransport implements PeerTransport {
     @Override
     public void broadcast(NodeMessage message) {
         connectionManager.broadcastToPeers(message);
+    }
+
+    /**
+     * Inyecta los coordinadores de coordinación distribuida en el {@link PeerListener}.
+     * Debe llamarse ANTES de {@link #start()}.
+     */
+    public void setCoordinators(RicartAgrawalaCoordinator ricart, BullyElectionCoordinator bully) {
+        peerListener.setCoordinators(ricart, bully);
     }
 
     // -------------------------------------------------------------------------

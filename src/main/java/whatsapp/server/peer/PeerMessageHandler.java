@@ -1,30 +1,35 @@
 package whatsapp.server.peer;
 
-import whatsapp.common.models.PaqueteCrearGrupo;
-import whatsapp.common.models.PaqueteMensaje;
-import whatsapp.common.models.PaqueteRed;
-import whatsapp.common.models.PaqueteUnirseGrupo;
-import whatsapp.server.directory.GlobalUserDirectory;
-import whatsapp.server.handlers.ManejadorCliente;
-import whatsapp.server.managers.DistributedGroupManager;
-import whatsapp.server.managers.LocalSessionManager;
 import whatsapp.server.membership.MembershipManager;
-import whatsapp.server.messages.AppMessage;
 import whatsapp.server.messages.HeartbeatMessage;
 import whatsapp.server.messages.MembershipUpdateMessage;
+import whatsapp.server.messages.MutexRequestMessage;
 import whatsapp.server.messages.NodeMessage;
 import whatsapp.server.messages.NodeMessageType;
 import whatsapp.server.messages.PeerHelloAckMessage;
 import whatsapp.server.messages.PeerHelloMessage;
+import whatsapp.server.mutex.RicartAgrawalaCoordinator;
 import whatsapp.server.node.NodeInfo;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.Optional;
-import java.util.Set;
 
+/**
+ * Procesa un mensaje recibido desde otro nodo servidor.
+ *
+ * <p>Cada instancia maneja una única conexión entrante de un peer. Lee el
+ * {@link NodeMessage}, actualiza la membresía y despacha según el tipo.
+ * Los mensajes que corresponden a Persona 3, 4 o 5 se registran y se descartan
+ * sin error para mantener compatibilidad futura.</p>
+ *
+ * <p><b>Protocolo de handshake ObjectStream:</b> Para evitar el deadlock clásico
+ * de Java Object serialization, AMBOS lados deben crear su ObjectOutputStream
+ * y hacer flush ANTES de crear el ObjectInputStream. El emisor
+ * (PeerConnectionManager#doSendAndReadAck) ya lo hace. Este receptor también
+ * debe seguir el mismo orden: OOS + flush → OIS → readObject.</p>
+ */
 public class PeerMessageHandler implements Runnable {
 
     private final Socket socket;
@@ -32,27 +37,16 @@ public class PeerMessageHandler implements Runnable {
     private final PeerConnectionManager connectionManager;
     private final String selfNodeId;
 
-    // Nuevos campos para manejar mensajes de aplicación
-    private final LocalSessionManager<ManejadorCliente> localSessionManager;
-    private final GlobalUserDirectory globalUserDirectory;
-    private final DistributedGroupManager distributedGroupManager;
-
     public PeerMessageHandler(
             Socket socket,
             MembershipManager membershipManager,
             PeerConnectionManager connectionManager,
-            String selfNodeId,
-            LocalSessionManager<ManejadorCliente> localSessionManager,
-            GlobalUserDirectory globalUserDirectory,
-            DistributedGroupManager distributedGroupManager
+            String selfNodeId
     ) {
         this.socket = socket;
         this.membershipManager = membershipManager;
         this.connectionManager = connectionManager;
         this.selfNodeId = selfNodeId;
-        this.localSessionManager = localSessionManager;
-        this.globalUserDirectory = globalUserDirectory;
-        this.distributedGroupManager = distributedGroupManager;
     }
 
     @Override
@@ -60,9 +54,18 @@ public class PeerMessageHandler implements Runnable {
         try {
             socket.setSoTimeout(10_000);
 
+            // CRÍTICO: crear ObjectOutputStream primero y hacer flush ANTES de
+            // crear ObjectInputStream. Esto es obligatorio en Java para evitar
+            // el deadlock del handshake de headers:
+            //   - El emisor (doSendAndReadAck) crea OOS → flush → OIS
+            //   - El receptor (aquí) debe hacer lo mismo: OOS → flush → OIS
+            // Si cualquiera de los dos crea OIS antes de que el otro haya
+            // enviado su header via OOS+flush, ambos quedan bloqueados
+            // esperando el header del otro → SocketTimeoutException al expirar.
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-            out.flush();
-            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+            out.flush(); // enviar header inmediatamente
+
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream()); // recibir header del emisor
 
             Object raw = in.readObject();
             if (!(raw instanceof NodeMessage)) {
@@ -71,6 +74,8 @@ public class PeerMessageHandler implements Runnable {
             }
 
             NodeMessage message = (NodeMessage) raw;
+
+            // Actualizar lastSeen en membresía
             membershipManager.markAlive(message.getSourceNodeId());
             NodeInfo senderInfo = membershipManager.getNode(message.getSourceNodeId()).orElse(null);
             if (senderInfo != null) {
@@ -79,7 +84,7 @@ public class PeerMessageHandler implements Runnable {
 
             log("Mensaje recibido: type=" + message.getType()
                     + " source=" + message.getSourceNodeId()
-                    + " L=" + message.getLamportTimestamp());
+                    + " L=" + updatedTs);
 
             switch (message.getType()) {
                 case PEER_HELLO:
@@ -89,7 +94,29 @@ public class PeerMessageHandler implements Runnable {
                     handleMembershipUpdate((MembershipUpdateMessage) message);
                     break;
                 case HEARTBEAT:
-                    handleHeartbeat(message, out);
+                    handleHeartbeat(message);
+                    break;
+
+                // ---- Ricart-Agrawala ----
+                case MUTEX_REQUEST:
+                    handleMutexRequest((MutexRequestMessage) message);
+                    break;
+
+                case MUTEX_REPLY:
+                    handleMutexReply(message);
+                    break;
+
+                // ---- Bully Election ----
+                case ELECTION:
+                    handleElection((ElectionMessage) message);
+                    break;
+
+                case ELECTION_OK:
+                    handleElectionOk(message);
+                    break;
+
+                case ELECTION_COORDINATOR:
+                    handleElectionCoordinator((ElectionMessage) message);
                     break;
                 // ---- NUEVO: manejar mensajes de aplicación ----
                 case APP:
@@ -97,7 +124,9 @@ public class PeerMessageHandler implements Runnable {
                     handleAppMessage(appMsg);
                     break;
                 default:
-                    log("Tipo pendiente: " + message.getType() + " desde " + message.getSourceNodeId());
+                    // Mensajes futuros (Persona 3, 4, 5) — registrar y delegar
+                    log("Tipo de mensaje pendiente de implementación: " + message.getType()
+                            + " desde " + message.getSourceNodeId());
                     connectionManager.enqueueIncoming(message);
                     break;
             }
@@ -110,7 +139,7 @@ public class PeerMessageHandler implements Runnable {
     }
 
     // -------------------------------------------------------------------------
-    // Manejadores existentes (ya los tienes, los dejo igual)
+    // Manejadores específicos
     // -------------------------------------------------------------------------
 
     private void handlePeerHello(PeerHelloMessage hello, ObjectOutputStream out) throws IOException {
@@ -129,16 +158,18 @@ public class PeerMessageHandler implements Runnable {
             }
         }
 
+        // Responder con PEER_HELLO_ACK en la misma conexión
         PeerHelloAckMessage ack = new PeerHelloAckMessage(
                 selfNodeId,
                 sourceId,
-                0L,
+                0L, // Lamport se completará por Persona 4
                 true,
                 membershipManager.getSelf(),
                 membershipManager.getAllNodes()
         );
         out.writeObject(ack);
         out.flush();
+
         log("PEER_HELLO_ACK enviado a " + sourceId);
         log("Peer detectado: " + sourceId);
     }
@@ -155,8 +186,20 @@ public class PeerMessageHandler implements Runnable {
     }
 
     private void handleHeartbeat(NodeMessage hb, ObjectOutputStream out) throws IOException {
-        // Enviar ACK
-        out.writeObject(new NodeMessage(selfNodeId, hb.getSourceNodeId(), NodeMessageType.HEARTBEAT_ACK, 0L));
+        // Envia el ACK de vuelta al emisor para que no lo declare muerto
+        HeartbeatMessage ack = new HeartbeatMessage(
+                selfNodeId, 
+                hb.getSourceNodeId(), 
+                0L // Lamport placeholder
+        );
+        
+        // Transformamos temporalmente el tipo del NodeMessage para que sea un ACK.
+        // Lo ideal será crear un HeartbeatAckMessage o agregar un flag boolean isAck al HeartbeatMessage.
+        // Pero asumiendo que usarán el NodeMessageType.HEARTBEAT_ACK:
+        
+        out.writeObject(new NodeMessage(selfNodeId, hb.getSourceNodeId(), whatsapp.server.messages.NodeMessageType.HEARTBEAT_ACK, 0L) {
+            private static final long serialVersionUID = 1L;
+        });
         out.flush();
     }
 

@@ -1,5 +1,7 @@
 package whatsapp.server.peer;
 
+import whatsapp.server.membership.MembershipManager;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -21,35 +23,48 @@ public class PeerListener implements Runnable {
     private final MembershipManager membershipManager;
     private final PeerConnectionManager connectionManager;
 
-    // Nuevos campos
-    private final LocalSessionManager<ManejadorCliente> localSessionManager;
-    private final GlobalUserDirectory globalUserDirectory;
-    private final DistributedGroupManager distributedGroupManager;
-
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final CountDownLatch readyLatch = new CountDownLatch(1);
     private ServerSocket serverSocket;
 
+    // Coordinadores de coordinación distribuida (inyectados tras creación del transporte)
+    private volatile RicartAgrawalaCoordinator ricartCoordinator;
+    private volatile BullyElectionCoordinator bullyCoordinator;
+
+    /**
+     * Construye el listener inter-nodo.
+     *
+     * @param peerPort          puerto en el que escuchar conexiones de peers
+     * @param selfNodeId        identificador del nodo local (para logs)
+     * @param peerWorkerPool    pool de hilos para procesar mensajes
+     * @param membershipManager membresía del nodo local
+     * @param connectionManager manager de conexiones salientes
+     */
     public PeerListener(
             int peerPort,
             String selfNodeId,
             ExecutorService peerWorkerPool,
             MembershipManager membershipManager,
-            PeerConnectionManager connectionManager,
-            LocalSessionManager<ManejadorCliente> localSessionManager,
-            GlobalUserDirectory globalUserDirectory,
-            DistributedGroupManager distributedGroupManager
+            PeerConnectionManager connectionManager
     ) {
         this.peerPort = peerPort;
         this.selfNodeId = selfNodeId;
         this.peerWorkerPool = peerWorkerPool;
         this.membershipManager = membershipManager;
         this.connectionManager = connectionManager;
-        this.localSessionManager = localSessionManager;
-        this.globalUserDirectory = globalUserDirectory;
-        this.distributedGroupManager = distributedGroupManager;
     }
 
+    /**
+     * Abre el {@link ServerSocket} de forma síncrona en el hilo que llama a
+     * este método (normalmente el hilo principal de arranque del nodo).
+     *
+     * <p>Debe invocarse y completarse ANTES de lanzar {@link #run()} en su
+     * hilo dedicado y ANTES de enviar cualquier PEER_HELLO a otros peers.
+     * Esto elimina la ventana de carrera en la que un nodo intenta conectarse
+     * a un peer cuyo listener aún no está aceptando conexiones.</p>
+     *
+     * @throws IOException si no se pudo abrir el socket en {@code peerPort}
+     */
     public void openServerSocket() throws IOException {
         serverSocket = new ServerSocket(peerPort);
         running.set(true);
@@ -76,10 +91,7 @@ public class PeerListener implements Runnable {
                             peerSocket,
                             membershipManager,
                             connectionManager,
-                            selfNodeId,
-                            localSessionManager,      // ← inyectado
-                            globalUserDirectory,      // ← inyectado
-                            distributedGroupManager   // ← inyectado
+                            selfNodeId
                     ));
 
                 } catch (SocketException e) {

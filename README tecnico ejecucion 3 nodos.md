@@ -82,7 +82,9 @@ Los nodos pueden iniciarse simultáneamente o en momentos distintos. Una vez que
 [node1][PeerConnMgr] Enviando PEER_HELLO a node2 localhost:6002
 [node1][PeerConnMgr] Enviando PEER_HELLO a node3 localhost:6003
 [node1][TcpPeerTransport] TcpPeerTransport iniciado
-[node1] ServerNode iniciado con comunicación TCP real entre nodos.
+[node1] Emisor de Heartbeats programado cada 2000ms
+[node1] Sweeper de fallos programado. Tolerancia máxima de inactividad: 6000ms
+[node1] ServerNode iniciado — Ricart-Agrawala y Bully activos.
 [node1][PeerConnMgr] PEER_HELLO enviado a node2
 [node1][PeerConnMgr] PEER_HELLO enviado a node3
 [node1][PeerConnMgr] PEER_HELLO_ACK recibido desde node2
@@ -114,4 +116,41 @@ indica que la comunicación TCP entre los nodos se estableció correctamente, in
 
 ## Resultado esperado
 
-Una vez ejecutados los tres procesos, cada nodo mantiene comunicación TCP con los demás y es capaz de detectar a sus pares mediante el intercambio de mensajes de descubrimiento, quedando listo para soportar las funcionalidades distribuidas implementadas por las siguientes etapas del proyecto.
+### 1. Descubrimiento TCP
+
+Una vez ejecutados los tres procesos, cada nodo mantiene comunicación TCP con los demás y se detectan mutuamente mediante `PEER_HELLO` / `PEER_HELLO_ACK`.
+
+### 2. Elección de coordinador — algoritmo Bully (~4 segundos)
+
+Aproximadamente 4 segundos después del arranque, los nodos realizan una elección automática para determinar el coordinador. El nodo con mayor identificador lexicográfico gana (`node3 > node2 > node1`).
+
+Todos los nodos deben mostrar:
+
+```text
+[nodeX][Bully] === COORDINADOR ELECTO: node3 ===
+```
+
+Si un nodo cae (por ejemplo, cerrando su ventana con Ctrl+C), los demás lo detectan en aproximadamente 6 segundos (timeout de heartbeat) e inician una nueva elección automáticamente:
+
+```text
+[node2] El coordinador node3 cayó. Iniciando elección Bully...
+[node2][Bully] === ME PROCLAMO COORDINADOR: node2 ===
+[node1][Bully] === COORDINADOR ELECTO: node2 ===
+```
+
+### 3. Exclusión mutua distribuida — Ricart-Agrawala (~6 segundos)
+
+Aproximadamente 6 segundos después del arranque, los tres nodos intentan crear simultáneamente el grupo `grupo-demo-ricart` para demostrar la exclusión mutua distribuida. Se puede observar el intercambio de mensajes `MUTEX_REQUEST`, `MUTEX_REPLY` y los estados `DEFERIDO` / `HELD`.
+
+```text
+[nodeX][Ricart-Agrawala] ACQUIRE 'GROUP_REGISTRY': REQUEST L=29 → [node1, node3]
+[nodeX][Ricart-Agrawala] HELD — todos los replies recibidos
+[nodeX][Ricart-Agrawala] RELEASED — respondiendo a 2 diferidos
+[nodeX] [DEMO R-A] Grupo 'grupo-demo-ricart' CREADO exitosamente por nodeX
+```
+
+El algoritmo garantiza que los nodos acceden a la sección crítica de forma estrictamente secuencial; solo uno tiene el estado `HELD` en cada momento.
+
+### 4. Logs de eventos
+
+Al detener un nodo (Ctrl+C), se genera automáticamente el archivo `logs/events-nodeX.log` con todos los eventos ordenados por timestamp de Lamport, útil para verificar la causalidad de los mensajes distribuidos.
