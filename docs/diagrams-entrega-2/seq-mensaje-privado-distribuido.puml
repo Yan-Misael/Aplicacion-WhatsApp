@@ -1,53 +1,72 @@
 @startuml
-title Función principal 1 - Mensajería privada distribuida
+title Secuencia - Mensajería privada distribuida con Lamport
 
-skinparam monochrome true
 skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam wrapWidth 180
+skinparam maxMessageSize 180
 
-actor "Cliente A" as A
-participant "node1\nServerNode" as N1
-participant "ClientConnectionHandler\nnode1" as CCH1
+actor "Cliente A\nusuarioA" as CA
+participant "ManejadorCliente\nnode1" as MC1
 participant "MessageRouter\nnode1" as MR1
 participant "LocalSessionManager\nnode1" as LSM1
 participant "GlobalUserDirectory\nnode1" as GUD1
-participant "PeerTransport TCP\nnode1" as PT1
+participant "LamportClock\nnode1" as LC1
+participant "EventLogger\nnode1" as LOG1
+participant "PeerTransport\nnode1" as PT1
 
-participant "node2\nServerNode" as N2
 participant "PeerMessageHandler\nnode2" as PMH2
-participant "MessageRouter\nnode2" as MR2
+participant "LamportClock\nnode2" as LC2
+participant "EventLogger\nnode2" as LOG2
 participant "LocalSessionManager\nnode2" as LSM2
-actor "Cliente B" as B
+actor "Cliente B\nusuarioB" as CB
 
-== Cliente A envía mensaje privado ==
+CA -> MC1 : PaqueteMensaje(usuarioA, usuarioB, texto, esGrupo=false)
+MC1 -> MR1 : routePrivateMessage(paquete)
 
-A -> N1 : PaqueteMensaje(A, B, texto)
-N1 -> CCH1 : procesar paquete
-CCH1 -> MR1 : routePrivateMessage(A, B, texto)
+MR1 -> LSM1 : getSession(usuarioB)
 
-== Resolver ubicación ==
+alt Destinatario conectado en node1
+  LSM1 --> MR1 : sesión local de usuarioB
+  MR1 -> LC1 : tick()
+  LC1 --> MR1 : L=n
+  MR1 -> LOG1 : logLocal("APP_PRIVATE_LOCAL", L=n)
+  MR1 -> LSM1 : deliver(usuarioB, PaqueteMensaje)
+  LSM1 -> CB : entregar mensaje privado
 
-MR1 -> LSM1 : isLocal(B)
-LSM1 --> MR1 : false
+else Destinatario conectado en otro nodo
+  LSM1 --> MR1 : no encontrado localmente
+  MR1 -> GUD1 : findNodeForUser(usuarioB)
+  GUD1 --> MR1 : node2
 
-MR1 -> GUD1 : findNodeForUser(B)
-GUD1 --> MR1 : node2
+  MR1 -> LC1 : tick()
+  LC1 --> MR1 : L=n
+  MR1 -> LOG1 : logSend("APP_PRIVATE", node1->node2, L=n)
+  MR1 -> PT1 : sendToNode(node2,\nAppMessage(APP_PRIVATE,\nPaqueteMensaje,\nlamport=L=n))
 
-== Reenvío remoto ==
+  PT1 -> PMH2 : NodeMessage serializado por TCP
 
-MR1 -> PT1 : sendToNode(node2,\nPRIVATE_MESSAGE_FORWARD)
-PT1 -> N2 : PRIVATE_MESSAGE_FORWARD\nfrom=A,to=B,texto,L
+  PMH2 -> LC2 : update(L=n)
+  LC2 --> PMH2 : L=max(local,n)+1
+  PMH2 -> LOG2 : logReceive("APP_PRIVATE", node1->node2, L=m)
 
-N2 -> PMH2 : recibir NodeMessage
-PMH2 -> MR2 : procesar PRIVATE_MESSAGE_FORWARD
-MR2 -> LSM2 : getLocalSession(B)
-LSM2 --> MR2 : sesión local de B
+  PMH2 -> LSM2 : getSession(usuarioB)
+  LSM2 --> PMH2 : sesión local de usuarioB
+  PMH2 -> LSM2 : deliver(usuarioB, PaqueteMensaje)
+  LSM2 -> CB : entregar mensaje privado
 
-MR2 -> B : entregar PaqueteMensaje(A, B, texto)
+else Destinatario no conectado o sin ubicación conocida
+  LSM1 --> MR1 : no encontrado localmente
+  MR1 -> GUD1 : findNodeForUser(usuarioB)
+  GUD1 --> MR1 : null
+  MR1 -> MC1 : PaqueteError("Usuario no conectado")
+  MC1 -> CA : informar error
+end
 
-== Confirmación ==
-
-MR2 --> PMH2 : entrega OK
-PMH2 --> N1 : PRIVATE_MESSAGE_ACK(delivered=true)
-N1 -> N1 : registrar métrica y log
+note over MR1,PMH2
+El mensaje remoto viaja como AppMessage.
+El orden lógico se registra con Lamport:
+SEND(node1) < RECEIVE(node2).
+end note
 
 @enduml

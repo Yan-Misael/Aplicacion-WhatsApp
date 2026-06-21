@@ -1,78 +1,93 @@
 @startuml
-title Función principal 2 - Mensajería grupal distribuida
+title Secuencia - Mensajería grupal distribuida con Lamport
 
-skinparam monochrome true
 skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam wrapWidth 180
+skinparam maxMessageSize 180
 
-actor "Cliente A" as A
-
-participant "node1\nServerNode" as N1
-participant "ClientConnectionHandler\nnode1" as CCH1
+actor "Cliente A\nusuarioA" as CA
+participant "ManejadorCliente\nnode1" as MC1
 participant "MessageRouter\nnode1" as MR1
 participant "DistributedGroupManager\nnode1" as DGM1
 participant "LocalSessionManager\nnode1" as LSM1
-participant "PeerTransport TCP\nnode1" as PT1
+participant "LamportClock\nnode1" as LC1
+participant "EventLogger\nnode1" as LOG1
+participant "PeerTransport\nnode1" as PT1
 
-participant "node2\nServerNode" as N2
 participant "PeerMessageHandler\nnode2" as PMH2
-participant "MessageRouter\nnode2" as MR2
+participant "LamportClock\nnode2" as LC2
+participant "EventLogger\nnode2" as LOG2
 participant "LocalSessionManager\nnode2" as LSM2
-actor "Cliente B" as B
+actor "Cliente B\nmiembro remoto" as CB
 
-participant "node3\nServerNode" as N3
 participant "PeerMessageHandler\nnode3" as PMH3
-participant "MessageRouter\nnode3" as MR3
+participant "LamportClock\nnode3" as LC3
+participant "EventLogger\nnode3" as LOG3
 participant "LocalSessionManager\nnode3" as LSM3
-actor "Cliente C" as C
+actor "Cliente C\nmiembro remoto" as CC
 
-== Cliente A envía mensaje grupal ==
-
-A -> N1 : PaqueteMensajeGrupo(grupoX, texto)
-N1 -> CCH1 : procesar paquete
-CCH1 -> MR1 : routeGroupMessage(A, grupoX, texto)
-
-== Validar grupo y membresía ==
+CA -> MC1 : PaqueteMensaje(usuarioA, grupoX, texto, esGrupo=true)
+MC1 -> MR1 : routeGroupMessage(paquete)
 
 MR1 -> DGM1 : groupExists(grupoX)
-DGM1 --> MR1 : true
 
-MR1 -> DGM1 : isMember(grupoX, A)
-DGM1 --> MR1 : true
+alt Grupo no existe
+  DGM1 --> MR1 : false
+  MR1 -> MC1 : PaqueteError("Grupo no existe")
+  MC1 -> CA : informar error
 
-MR1 -> DGM1 : getMembersSnapshot(grupoX)
-DGM1 --> MR1 : [A, B, C]
+else Grupo existe
+  DGM1 --> MR1 : true
+  MR1 -> DGM1 : isMember(grupoX, usuarioA)
 
-== Entrega local y reenvío remoto ==
+  alt Usuario no pertenece al grupo
+    DGM1 --> MR1 : false
+    MR1 -> MC1 : PaqueteError("Usuario no pertenece al grupo")
+    MC1 -> CA : informar error
 
-MR1 -> LSM1 : entregar a miembros locales
-LSM1 --> MR1 : entregado localmente si aplica
+  else Usuario autorizado
+    DGM1 --> MR1 : true
 
-MR1 -> PT1 : sendToNode(node2,\nGROUP_MESSAGE_FORWARD)
-PT1 -> N2 : GROUP_MESSAGE_FORWARD(grupoX,texto,targetMembers=[B])
+    MR1 -> DGM1 : getMembersSnapshot(grupoX)
+    DGM1 --> MR1 : {usuarioA, usuarioB, usuarioC, ...}
 
-MR1 -> PT1 : sendToNode(node3,\nGROUP_MESSAGE_FORWARD)
-PT1 -> N3 : GROUP_MESSAGE_FORWARD(grupoX,texto,targetMembers=[C])
+    MR1 -> LSM1 : deliverToLocalGroupMembers(grupoX,\nexcluir usuarioA)
+    LSM1 --> MR1 : entregas locales realizadas
 
-== Entrega en node2 ==
+    MR1 -> LC1 : tick()
+    LC1 --> MR1 : L=n
 
-N2 -> PMH2 : recibir GROUP_MESSAGE_FORWARD
-PMH2 -> MR2 : procesar mensaje grupal remoto
-MR2 -> LSM2 : getLocalSession(B)
-LSM2 --> MR2 : sesión local B
-MR2 -> B : entregar mensaje grupal
+    MR1 -> LOG1 : logSend("APP_GROUP", node1->*, L=n)
 
-== Entrega en node3 ==
+    MR1 -> PT1 : broadcast(AppMessage(APP_GROUP,\ngrupoX, texto,\nlamport=L=n))
 
-N3 -> PMH3 : recibir GROUP_MESSAGE_FORWARD
-PMH3 -> MR3 : procesar mensaje grupal remoto
-MR3 -> LSM3 : getLocalSession(C)
-LSM3 --> MR3 : sesión local C
-MR3 -> C : entregar mensaje grupal
+    par Entrega remota en node2
+      PT1 -> PMH2 : AppMessage(APP_GROUP) por TCP
+      PMH2 -> LC2 : update(L=n)
+      LC2 --> PMH2 : L=max(local,n)+1
+      PMH2 -> LOG2 : logReceive("APP_GROUP", node1->node2, L=m)
+      PMH2 -> LSM2 : deliverToLocalGroupMembers(grupoX,\nexcluir usuarioA)
+      LSM2 -> CB : entregar mensaje grupal si es miembro local
 
-== Confirmaciones ==
+    else Entrega remota en node3
+      PT1 -> PMH3 : AppMessage(APP_GROUP) por TCP
+      PMH3 -> LC3 : update(L=n)
+      LC3 --> PMH3 : L=max(local,n)+1
+      PMH3 -> LOG3 : logReceive("APP_GROUP", node1->node3, L=k)
+      PMH3 -> LSM3 : deliverToLocalGroupMembers(grupoX,\nexcluir usuarioA)
+      LSM3 -> CC : entregar mensaje grupal si es miembro local
+    end
 
-PMH2 --> N1 : GROUP_MESSAGE_ACK(deliveredUsers=[B])
-PMH3 --> N1 : GROUP_MESSAGE_ACK(deliveredUsers=[C])
-N1 -> N1 : registrar métricas y logs
+    MR1 -> MC1 : PaqueteConfirm("Mensaje grupal enviado")
+    MC1 -> CA : confirmar envío
+  end
+end
+
+note over MR1,PMH3
+El nodo emisor valida existencia del grupo y membresía del usuario.
+Luego entrega a miembros locales y difunde el mensaje a peers vivos.
+Cada nodo receptor actualiza su reloj de Lamport y entrega solo a sus miembros locales.
+end note
 
 @enduml

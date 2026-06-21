@@ -1,0 +1,56 @@
+@startuml
+title Cadenas causales con Lamport en APP_PRIVATE y APP_GROUP
+
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam wrapWidth 180
+skinparam maxMessageSize 180
+
+participant "node1" as N1
+participant "node2" as N2
+participant "node3" as N3
+
+== Cadena causal 1: mensaje privado ==
+
+N1 -> N1 : Evento local:\nusuarioA envía mensaje privado\nL = 67
+
+N1 -> N1 : tick()\nL = 68
+N1 -> N2 : SEND APP_PRIVATE\nnode1 -> node2\nL = 68
+
+N2 -> N2 : update(68)\nL = max(local, 68) + 1 = 69
+N2 -> N2 : RECEIVE APP_PRIVATE\nentregar a usuarioB\nL = 69
+
+note over N1,N2
+Se cumple:
+SEND APP_PRIVATE L=68
+ocurre antes que
+RECEIVE APP_PRIVATE L=69.
+Por tanto: 68 < 69.
+end note
+
+== Cadena causal 2: mensaje grupal ==
+
+N3 -> N3 : Evento local:\nusuarioC envía mensaje a grupoX\nL = 129
+
+N3 -> N3 : tick()\nL = 130
+N3 -> N1 : SEND APP_GROUP\nnode3 -> node1\nL = 130
+N3 -> N2 : SEND APP_GROUP\nnode3 -> node2\nL = 130
+
+par Recepción en node1
+  N1 -> N1 : update(130)\nL = max(local, 130) + 1 = 131
+  N1 -> N1 : RECEIVE APP_GROUP\nentregar a miembros locales\nL = 131
+
+else Recepción en node2
+  N2 -> N2 : update(130)\nL = max(local, 130) + 1 = 131
+  N2 -> N2 : RECEIVE APP_GROUP\nentregar a miembros locales\nL = 131
+end
+
+note over N1,N3
+El envío grupal precede causalmente
+a cada recepción remota.
+Las recepciones en node1 y node2 pueden quedar
+con el mismo Lamport porque son eventos concurrentes
+entre sí después del broadcast.
+end note
+
+@enduml
