@@ -5,6 +5,7 @@ import whatsapp.server.clock.LamportClock;
 import whatsapp.server.config.NodeConfig;
 import whatsapp.server.directory.GlobalUserDirectory;
 import whatsapp.server.election.BullyElectionCoordinator;
+import whatsapp.server.handlers.ManejadorCliente;
 import whatsapp.server.managers.DistributedGroupManager;
 import whatsapp.server.managers.LocalSessionManager;
 import whatsapp.server.membership.MembershipManager;
@@ -32,7 +33,7 @@ public class ServerNodeContext {
     private final MembershipManager membershipManager;
     private final GlobalUserDirectory globalUserDirectory;
     private final DistributedGroupManager distributedGroupManager;
-    private final LocalSessionManager<Object> localSessionManager;
+    private final LocalSessionManager<ManejadorCliente> localSessionManager;
     private final PeerTransport peerTransport;
     private final MessageRouter messageRouter;
     private final LamportClock lamportClock;
@@ -50,7 +51,7 @@ public class ServerNodeContext {
             MembershipManager membershipManager,
             GlobalUserDirectory globalUserDirectory,
             DistributedGroupManager distributedGroupManager,
-            LocalSessionManager<Object> localSessionManager,
+            LocalSessionManager<ManejadorCliente> localSessionManager,
             PeerTransport peerTransport,
             MessageRouter messageRouter,
             LamportClock lamportClock,
@@ -83,7 +84,7 @@ public class ServerNodeContext {
     public MembershipManager getMembershipManager() { return membershipManager; }
     public GlobalUserDirectory getGlobalUserDirectory() { return globalUserDirectory; }
     public DistributedGroupManager getDistributedGroupManager() { return distributedGroupManager; }
-    public LocalSessionManager<Object> getLocalSessionManager() { return localSessionManager; }
+    public LocalSessionManager<ManejadorCliente> getLocalSessionManager() { return localSessionManager; }
     public PeerTransport getPeerTransport() { return peerTransport; }
     public MessageRouter getMessageRouter() { return messageRouter; }
     public LamportClock getLamportClock() { return lamportClock; }

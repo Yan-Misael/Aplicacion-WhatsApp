@@ -9,6 +9,8 @@ import whatsapp.common.models.PaqueteCrearGrupo;
 import whatsapp.common.models.PaqueteError;
 import whatsapp.common.models.PaqueteMensaje;
 import whatsapp.common.models.PaqueteUnirseGrupo;
+import whatsapp.server.clock.EventLogger;
+import whatsapp.server.clock.LamportClock;
 import whatsapp.server.directory.GlobalUserDirectory;
 import whatsapp.server.handlers.ManejadorCliente;
 import whatsapp.server.managers.DistributedGroupManager;
@@ -24,19 +26,25 @@ public class MessageRouter {
     private final DistributedGroupManager distributedGroupManager;
     private final MembershipManager membershipManager;
     private final PeerTransport peerTransport;
+    private final LamportClock lamportClock;
+    private final EventLogger eventLogger;
 
     public MessageRouter(String selfNodeId,
                          LocalSessionManager<ManejadorCliente> localSessionManager,
                          GlobalUserDirectory globalUserDirectory,
                          DistributedGroupManager distributedGroupManager,
                          MembershipManager membershipManager,
-                         PeerTransport peerTransport) {
+                         PeerTransport peerTransport,
+                         LamportClock lamportClock,
+                         EventLogger eventLogger) {
         this.selfNodeId = selfNodeId;
         this.localSessionManager = localSessionManager;
         this.globalUserDirectory = globalUserDirectory;
         this.distributedGroupManager = distributedGroupManager;
         this.membershipManager = membershipManager;
         this.peerTransport = peerTransport;
+        this.lamportClock = lamportClock;
+        this.eventLogger = eventLogger;
     }
 
     // ---------- Mensaje privado ----------
@@ -58,10 +66,13 @@ public class MessageRouter {
             return;
         }
 
-        // 3. Reenviar a otro nodo
-        AppMessage appMsg = new AppMessage(selfNodeId, nodeId.get(), msg, 0L); // Lamport será completado por Persona 4
+        // 3. Reenviar a otro nodo con timestamp Lamport correcto
+        long ts = lamportClock.tick();
+        AppMessage appMsg = new AppMessage(selfNodeId, nodeId.get(), msg, ts);
+        eventLogger.logSend("APP_PRIVATE", selfNodeId + "→" + nodeId.get(), ts);
         peerTransport.sendToNode(nodeId.get(), appMsg);
-        System.out.println("[Router] Mensaje privado reenviado a nodo " + nodeId.get() + " para " + destino);
+        System.out.println("[Router] Mensaje privado reenviado a nodo " + nodeId.get()
+                + " para " + destino + " L=" + ts);
     }
 
     // ---------- Mensaje grupal ----------
@@ -69,7 +80,6 @@ public class MessageRouter {
         String grupo = msg.getIdDestinatario();
         String remitenteId = msg.getIdRemitente();
 
-        // Validar grupo y membresía (local)
         if (!distributedGroupManager.groupExists(grupo)) {
             remitente.enviarObjeto(new PaqueteError("Servidor", "El grupo '" + grupo + "' no existe."));
             return;
@@ -90,47 +100,48 @@ public class MessageRouter {
             }
         }
 
-        // 2. Reenviar a otros nodos (broadcast)
-        // Nota: si quieres optimizar, puedes mantener un registro de nodos con miembros.
-        // Por simplicidad, broadcast a todos los nodos vivos.
-        AppMessage appMsg = new AppMessage(selfNodeId, "*", msg, 0L);
+        // 2. Broadcast a otros nodos con timestamp Lamport correcto
+        long ts = lamportClock.tick();
+        AppMessage appMsg = new AppMessage(selfNodeId, "*", msg, ts);
+        eventLogger.logSend("APP_GROUP", selfNodeId + "→*", ts);
         peerTransport.broadcast(appMsg);
-        System.out.println("[Router] Mensaje grupal difundido a todos los nodos.");
+        System.out.println("[Router] Mensaje grupal difundido a todos los nodos. L=" + ts);
     }
 
     // ---------- Creación de grupo ----------
     public void routeCreateGroup(String grupo, String creador, ManejadorCliente remitente) throws IOException {
-        // Crear localmente
         boolean creado = distributedGroupManager.createGroup(grupo, Set.of(creador));
         if (!creado) {
             remitente.enviarObjeto(new PaqueteError("Servidor", "El grupo '" + grupo + "' ya existe."));
             return;
         }
 
-        // Propagar a otros nodos
+        long ts = lamportClock.tick();
         PaqueteCrearGrupo payload = new PaqueteCrearGrupo(creador, grupo);
-        AppMessage appMsg = new AppMessage(selfNodeId, "*", payload, 0L);
+        AppMessage appMsg = new AppMessage(selfNodeId, "*", payload, ts);
+        eventLogger.logSend("APP_CREATE_GROUP", selfNodeId + "→*", ts);
         peerTransport.broadcast(appMsg);
 
         remitente.enviarObjeto(new PaqueteConfirm(creador, true, "Grupo '" + grupo + "' creado."));
-        System.out.println("[Router] Grupo " + grupo + " creado y difundido.");
+        System.out.println("[Router] Grupo " + grupo + " creado y difundido. L=" + ts);
     }
 
     // ---------- Unión a grupo ----------
     public void routeJoinGroup(String grupo, String usuario, ManejadorCliente remitente) throws IOException {
-        // Unirse localmente
         boolean agregado = distributedGroupManager.addMember(grupo, usuario);
         if (!agregado) {
             remitente.enviarObjeto(new PaqueteError("Servidor", "No se pudo unir al grupo '" + grupo + "'."));
             return;
         }
 
-        // Propagar a otros nodos
+        long ts = lamportClock.tick();
         PaqueteUnirseGrupo payload = new PaqueteUnirseGrupo(usuario, grupo);
-        AppMessage appMsg = new AppMessage(selfNodeId, "*", payload, 0L);
+        AppMessage appMsg = new AppMessage(selfNodeId, "*", payload, ts);
+        eventLogger.logSend("APP_JOIN_GROUP", selfNodeId + "→*", ts);
         peerTransport.broadcast(appMsg);
 
         remitente.enviarObjeto(new PaqueteConfirm(usuario, true, "Te uniste al grupo '" + grupo + "'."));
-        System.out.println("[Router] Usuario " + usuario + " se unió a " + grupo + " y se difundió.");
+        System.out.println("[Router] Usuario " + usuario + " se unió a " + grupo
+                + " y se difundió. L=" + ts);
     }
 }

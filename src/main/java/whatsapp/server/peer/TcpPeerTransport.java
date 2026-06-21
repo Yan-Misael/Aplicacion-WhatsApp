@@ -1,7 +1,14 @@
 package whatsapp.server.peer;
 
+import whatsapp.server.clock.EventLogger;
+import whatsapp.server.clock.LamportClock;
+import whatsapp.server.election.BullyElectionCoordinator;
+import whatsapp.server.handlers.ManejadorCliente;
+import whatsapp.server.managers.DistributedGroupManager;
+import whatsapp.server.managers.LocalSessionManager;
 import whatsapp.server.membership.MembershipManager;
 import whatsapp.server.messages.NodeMessage;
+import whatsapp.server.mutex.RicartAgrawalaCoordinator;
 
 import java.util.concurrent.ExecutorService;
 
@@ -34,18 +41,27 @@ public class TcpPeerTransport implements PeerTransport {
     /**
      * Construye el transporte TCP.
      *
-     * @param selfNodeId          identificador del nodo local
-     * @param peerPort            puerto en el que escuchar peers entrantes
-     * @param peerWorkerPool      pool de hilos para operaciones inter-nodo
-     * @param membershipManager   membresía del nodo
-     * @param peerSocketTimeoutMs timeout de socket para conexiones a peers (ms)
+     * @param selfNodeId              identificador del nodo local
+     * @param peerPort                puerto en el que escuchar peers entrantes
+     * @param peerWorkerPool          pool de hilos para operaciones inter-nodo
+     * @param membershipManager       membresía del nodo
+     * @param peerSocketTimeoutMs     timeout de socket para conexiones a peers (ms)
+     * @param lamportClock            reloj lógico de Lamport
+     * @param eventLogger             logger de eventos distribuidos
+     * @param distributedGroupManager gestor de grupos distribuidos
+     * @param localSessionManager     sesiones locales de clientes
      */
     public TcpPeerTransport(
             String selfNodeId,
             int peerPort,
             ExecutorService peerWorkerPool,
             MembershipManager membershipManager,
-            int peerSocketTimeoutMs
+            int peerSocketTimeoutMs,
+            LamportClock lamportClock,
+            EventLogger eventLogger,
+            DistributedGroupManager distributedGroupManager,
+            LocalSessionManager<ManejadorCliente> localSessionManager,
+            whatsapp.server.directory.GlobalUserDirectory globalUserDirectory
     ) {
         this.selfNodeId = selfNodeId;
         this.peerPort = peerPort;
@@ -61,13 +77,17 @@ public class TcpPeerTransport implements PeerTransport {
                 eventLogger
         );
 
-        // Ahora pasamos los nuevos managers al PeerListener
         this.peerListener = new PeerListener(
                 peerPort,
                 selfNodeId,
                 peerWorkerPool,
                 membershipManager,
-                connectionManager
+                connectionManager,
+                distributedGroupManager,
+                localSessionManager,
+                globalUserDirectory,
+                lamportClock,
+                eventLogger
         );
     }
 

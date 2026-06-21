@@ -1,0 +1,388 @@
+[node1] Iniciando ServerNode
+[node1] clientPort=5001 peerPort=6001
+[node1] clientWorkerPool=64 peerWorkerPool=16 schedulerPool=4 coordinationExecutor=1
+[node1] Peers configurados:
+[node1]  - node2@localhost:5002:6002 [ALIVE]
+[node1]  - node3@localhost:5003:6003 [ALIVE]
+[node1][TcpPeerTransport] Iniciando TcpPeerTransport en puerto 6001
+[node1][PeerListener] PeerListener escuchando en puerto 6001
+[node1][PeerConnMgr] Enviando PEER_HELLO a node2 localhost:6002
+[node1][L=1   ] SEND     PEER_HELLO                   node1→node2
+[node1][PeerConnMgr] Enviando PEER_HELLO a node3 localhost:6003
+[node1][L=2   ] SEND     PEER_HELLO                   node1→node3
+[node1][TcpPeerTransport] TcpPeerTransport iniciado
+[node1] Emisor de Heartbeats programado cada 2000ms
+[node1] Sweeper de fallos programado. Tolerancia máxima: 6000ms
+[node1] ServerNode iniciado — Ricart-Agrawala y Bully activos.
+[node1] ClientListener escuchando en puerto 5001
+[node1][PeerConnMgr] PEER_HELLO enviado a node3
+[node1][L=3   ] RECEIVE  PEER_HELLO                   node3→node1
+[node1][PeerConnMgr] PEER_HELLO enviado a node2
+[node1][L=4   ] RECEIVE  PEER_HELLO                   node2→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=PEER_HELLO source=node3 L=2 → local L=3
+[node1][PeerMessageHandler] Mensaje recibido: type=PEER_HELLO source=node2 L=2 → local L=4
+[node1][PeerMessageHandler] PEER_HELLO recibido desde node3
+[node1][PeerMessageHandler] Peer registrado: node3@localhost:5003:6003 [ALIVE]
+[node1][PeerMessageHandler] PEER_HELLO recibido desde node2
+[node1][PeerMessageHandler] Peer registrado: node2@localhost:5002:6002 [ALIVE]
+[node1][L=5   ] SEND     PEER_HELLO_ACK               node1→node3
+[node1][L=6   ] SEND     PEER_HELLO_ACK               node1→node2
+[node1][PeerMessageHandler] PEER_HELLO_ACK enviado a node3 L=5
+[node1][L=7   ] RECEIVE  PEER_HELLO_ACK               node2→node1
+[node1][PeerConnMgr] PEER_HELLO_ACK recibido desde node2 L=7
+[node1][PeerConnMgr] Peer detectado: node2
+[node1][PeerMessageHandler] PEER_HELLO_ACK enviado a node2 L=6
+[node1][L=8   ] RECEIVE  PEER_HELLO_ACK               node3→node1
+[node1][PeerConnMgr] PEER_HELLO_ACK recibido desde node3 L=8
+[node1][PeerConnMgr] Peer detectado: node3
+[node1][L=9   ] SEND     HEARTBEAT                    node1→node2
+[node1][L=11  ] RECEIVE  HEARTBEAT                    node2→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node2 L=10 → local L=11
+[node1][L=12  ] SEND     HEARTBEAT                    node1→node3
+[node1][L=13  ] RECEIVE  HEARTBEAT                    node3→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=10 → local L=13
+[node1][PeerConnMgr] Mensaje enviado a node2 type=HEARTBEAT L=9
+[node1][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=12
+[node1] Sin coordinador conocido — iniciando elección Bully inicial
+[node1][Bully] === INICIANDO ELECCIÓN ===
+[node1][L=14  ] SEND     HEARTBEAT                    node1→node2
+[node1][L=16  ] SEND     HEARTBEAT                    node1→node3
+[node1][L=15  ] SEND     ELECTION                     node1→node2
+[node1][PeerConnMgr] Mensaje enviado a node2 type=HEARTBEAT L=14
+[node1][Bully] ELECTION → node2
+[node1][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=16
+[node1][L=18  ] RECEIVE  HEARTBEAT                    node2→node1
+[node1][L=17  ] SEND     ELECTION                     node1→node3
+[node1][Bully] ELECTION → node3
+[node1][L=20  ] RECEIVE  ELECTION_COORDINATOR         node3→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=ELECTION_COORDINATOR source=node3 L=18 → local L=20
+[node1][L=19  ] RECEIVE  HEARTBEAT                    node3→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=15 → local L=19
+[node1][Bully] === COORDINADOR ELECTO: node3 ===
+[node1][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node2 L=15 → local L=18
+[node1][PeerConnMgr] Mensaje enviado a node3 type=ELECTION L=17
+[node1][L=24  ] RECEIVE  ELECTION_COORDINATOR         node3→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=ELECTION_COORDINATOR source=node3 L=23 → local L=24
+[node1][Bully] === COORDINADOR ELECTO: node3 ===
+[node1][PeerConnMgr] Mensaje enviado a node2 type=ELECTION L=15
+[node1][L=26  ] RECEIVE  ELECTION_OK                  node3→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=ELECTION_OK source=node3 L=25 → local L=26
+[node1][Bully] ELECTION_OK recibido de node3 — esperando COORDINATOR
+[node1][L=27  ] RECEIVE  ELECTION_OK                  node2→node1
+[node1][L=28  ] RECEIVE  ELECTION_COORDINATOR         node3→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=ELECTION_OK source=node2 L=24 → local L=27
+[node1][Bully] ELECTION_OK recibido de node2 — esperando COORDINATOR
+[node1][PeerMessageHandler] Mensaje recibido: type=ELECTION_COORDINATOR source=node3 L=27 → local L=28
+[node1][Bully] === COORDINADOR ELECTO: node3 ===
+[node1][L=33  ] RECEIVE  ELECTION_COORDINATOR         node3→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=ELECTION_COORDINATOR source=node3 L=32 → local L=33
+[node1][Bully] === COORDINADOR ELECTO: node3 ===
+[node1][L=34  ] SEND     HEARTBEAT                    node1→node2
+[node1] [DEMO R-A] Intentando crear grupo 'grupo-demo-ricart' con mutex distribuido...
+[node1][L=35  ] SEND     HEARTBEAT                    node1→node3
+[node1][PeerConnMgr] Mensaje enviado a node2 type=HEARTBEAT L=34
+[node1][Ricart-Agrawala] ACQUIRE 'GROUP_REGISTRY': REQUEST L=36 → [node2, node3]
+[node1][L=36  ] SEND     MUTEX_REQUEST                node1→node2
+[node1][L=36  ] SEND     MUTEX_REQUEST                node1→node3
+[node1][L=37  ] RECEIVE  HEARTBEAT                    node3→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=34 → local L=37
+[node1][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=35
+[node1][PeerConnMgr] Mensaje enviado a node2 type=MUTEX_REQUEST L=36
+[node1][L=38  ] RECEIVE  HEARTBEAT                    node2→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node2 L=34 → local L=38
+[node1][PeerConnMgr] Mensaje enviado a node3 type=MUTEX_REQUEST L=36
+[node1][L=39  ] RECEIVE  MUTEX_REQUEST                node3→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=MUTEX_REQUEST source=node3 L=35 → local L=39
+[node1][Ricart-Agrawala] REQUEST de node3 L=35 → REPLY inmediato
+[node1][L=40  ] SEND     MUTEX_REPLY                  node1→node3
+[node1][PeerConnMgr] Mensaje enviado a node3 type=MUTEX_REPLY L=40
+[node1][L=41  ] RECEIVE  MUTEX_REQUEST                node2→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=MUTEX_REQUEST source=node2 L=36 → local L=41
+[node1][Ricart-Agrawala] REQUEST de node2 L=36 → DEFERIDO (estado=WANTED)
+[node1][L=42  ] RECEIVE  MUTEX_REPLY                  node2→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=MUTEX_REPLY source=node2 L=40 → local L=42
+[node1][Ricart-Agrawala] REPLY de node2 — pendientes: [node3]
+[node1][L=44  ] RECEIVE  MUTEX_REPLY                  node3→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=MUTEX_REPLY source=node3 L=43 → local L=44
+[node1][Ricart-Agrawala] REPLY de node3 — pendientes: []
+[node1][Ricart-Agrawala] HELD — todos los replies recibidos
+[node1][Ricart-Agrawala] RELEASED — respondiendo a 1 diferidos
+[node1][L=45  ] SEND     MUTEX_REPLY                  node1→node2
+[node1] [DEMO R-A] Grupo 'grupo-demo-ricart' CREADO exitosamente por node1
+[node1][PeerConnMgr] Mensaje enviado a node2 type=MUTEX_REPLY L=45
+[node1][L=47  ] RECEIVE  HEARTBEAT                    node3→node1
+[node1][L=48  ] SEND     HEARTBEAT                    node1→node2
+[node1][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=46 → local L=47
+[node1][L=49  ] SEND     HEARTBEAT                    node1→node3
+[node1][PeerConnMgr] Mensaje enviado a node2 type=HEARTBEAT L=48
+[node1][L=50  ] RECEIVE  HEARTBEAT                    node2→node1
+[node1][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=49
+[node1][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node2 L=49 → local L=50
+[node1] Nueva conexión de cliente desde: /127.0.0.1
+[node1][L=51  ] SEND     HEARTBEAT                    node1→node2
+[node1][L=52  ] SEND     HEARTBEAT                    node1→node3
+[node1][PeerConnMgr] Mensaje enviado a node2 type=HEARTBEAT L=51
+[node1][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=52
+[node1][L=53  ] RECEIVE  HEARTBEAT                    node3→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=52 → local L=53
+[node1][L=54  ] RECEIVE  HEARTBEAT                    node2→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node2 L=52 → local L=54
+[node1][L=55  ] LOCAL    LOGIN                        felipe@node1
+Usuario felipe autenticado en node1 L=55
+[node1][PeerConnMgr] Mensaje enviado a node2 type=USER_LOGIN_ANNOUNCE L=55
+[node1][PeerConnMgr] Mensaje enviado a node3 type=USER_LOGIN_ANNOUNCE L=55
+[node1][L=58  ] RECEIVE  USER_LOGIN_ANNOUNCE          node2→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=USER_LOGIN_ANNOUNCE source=node2 L=57 → local L=58
+[node1][PeerMessageHandler] Usuario luis registrado remoto en nodo node2
+[node1][L=59  ] SEND     APP_PRIVATE                  node1→node2
+[Router] Mensaje privado reenviado a nodo node2 para luis L=59
+[node1][PeerConnMgr] Mensaje enviado a node2 type=APP L=59
+[node1][L=60  ] RECEIVE  USER_LOGIN_ANNOUNCE          node3→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=USER_LOGIN_ANNOUNCE source=node3 L=59 → local L=60
+[node1][PeerMessageHandler] Usuario maria registrado remoto en nodo node3
+[node1][L=61  ] SEND     HEARTBEAT                    node1→node2
+[node1][L=62  ] SEND     HEARTBEAT                    node1→node3
+[node1][PeerConnMgr] Mensaje enviado a node2 type=HEARTBEAT L=61
+[node1][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=62
+[node1][L=66  ] RECEIVE  HEARTBEAT                    node3→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=65 → local L=66
+[node1][L=67  ] RECEIVE  HEARTBEAT                    node2→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node2 L=66 → local L=67
+[node1][Ricart-Agrawala] ACQUIRE 'GROUP_REGISTRY': REQUEST L=68 → [node2, node3]
+[node1][L=68  ] SEND     MUTEX_REQUEST                node1→node2
+[node1][L=68  ] SEND     MUTEX_REQUEST                node1→node3
+[node1][PeerConnMgr] Mensaje enviado a node2 type=MUTEX_REQUEST L=68
+[node1][PeerConnMgr] Mensaje enviado a node3 type=MUTEX_REQUEST L=68
+[node1][L=71  ] RECEIVE  MUTEX_REPLY                  node3→node1
+[node1][L=72  ] RECEIVE  MUTEX_REPLY                  node2→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=MUTEX_REPLY source=node3 L=70 → local L=71
+[node1][PeerMessageHandler] Mensaje recibido: type=MUTEX_REPLY source=node2 L=70 → local L=72
+[node1][Ricart-Agrawala] REPLY de node3 — pendientes: [node2]
+[node1][Ricart-Agrawala] REPLY de node2 — pendientes: []
+[node1][Ricart-Agrawala] HELD — todos los replies recibidos
+[node1][Ricart-Agrawala] RELEASED — respondiendo a 0 diferidos
+[node1][L=73  ] SEND     APP_CREATE_GROUP             node1→*
+[Router] Grupo amigos creado y difundido. L=73
+[node1][PeerConnMgr] Mensaje enviado a node3 type=APP L=73
+[node1][PeerConnMgr] Mensaje enviado a node2 type=APP L=73
+[node1][L=76  ] RECEIVE  MUTEX_REQUEST                node2→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=MUTEX_REQUEST source=node2 L=75 → local L=76
+[node1][Ricart-Agrawala] REQUEST de node2 L=75 → REPLY inmediato
+[node1][L=77  ] RECEIVE  MUTEX_REQUEST                node3→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=MUTEX_REQUEST source=node3 L=75 → local L=77
+[node1][L=78  ] SEND     MUTEX_REPLY                  node1→node2
+[node1][Ricart-Agrawala] REQUEST de node3 L=75 → REPLY inmediato
+[node1][L=79  ] SEND     MUTEX_REPLY                  node1→node3
+[node1][PeerConnMgr] Mensaje enviado a node2 type=MUTEX_REPLY L=78
+[node1][PeerConnMgr] Mensaje enviado a node3 type=MUTEX_REPLY L=79
+[node1][L=82  ] RECEIVE  MUTEX_REQUEST                node2→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=MUTEX_REQUEST source=node2 L=81 → local L=82
+[node1][Ricart-Agrawala] REQUEST de node2 L=81 → REPLY inmediato
+[node1][L=83  ] SEND     MUTEX_REPLY                  node1→node2
+[node1][PeerConnMgr] Mensaje enviado a node2 type=MUTEX_REPLY L=83
+[node1][L=87  ] RECEIVE  APP                          node2→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=APP source=node2 L=86 → local L=87
+[node1][Ricart-Agrawala] ACQUIRE 'GROUP_REGISTRY': REQUEST L=88 → [node2, node3]
+[node1][L=88  ] SEND     MUTEX_REQUEST                node1→node2
+[node1][L=88  ] SEND     MUTEX_REQUEST                node1→node3
+[node1][PeerConnMgr] Mensaje enviado a node2 type=MUTEX_REQUEST L=88
+[node1][L=89  ] RECEIVE  MUTEX_REQUEST                node3→node1
+[node1][PeerConnMgr] Mensaje enviado a node3 type=MUTEX_REQUEST L=88
+[node1][PeerMessageHandler] Mensaje recibido: type=MUTEX_REQUEST source=node3 L=88 → local L=89
+[node1][Ricart-Agrawala] REQUEST de node3 L=88 → DEFERIDO (estado=WANTED)
+[node1][L=91  ] RECEIVE  MUTEX_REPLY                  node3→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=MUTEX_REPLY source=node3 L=90 → local L=91
+[node1][L=93  ] RECEIVE  MUTEX_REPLY                  node2→node1
+[node1][Ricart-Agrawala] REPLY de node3 — pendientes: [node2]
+[node1][PeerMessageHandler] Mensaje recibido: type=MUTEX_REPLY source=node2 L=92 → local L=93
+[node1][Ricart-Agrawala] REPLY de node2 — pendientes: []
+[node1][Ricart-Agrawala] HELD — todos los replies recibidos
+[node1][Ricart-Agrawala] RELEASED — respondiendo a 1 diferidos
+[node1][L=94  ] SEND     MUTEX_REPLY                  node1→node3
+[node1][PeerMessageHandler] Usuario luis se unió al grupo amigos (desde otro nodo)
+[node1][PeerConnMgr] Mensaje enviado a node3 type=MUTEX_REPLY L=94
+[node1][L=95  ] SEND     HEARTBEAT                    node1→node2
+[node1][L=96  ] SEND     HEARTBEAT                    node1→node3
+[node1][PeerConnMgr] Mensaje enviado a node2 type=HEARTBEAT L=95
+[node1][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=96
+[node1][L=100 ] RECEIVE  HEARTBEAT                    node3→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=99 → local L=100
+[node1][L=101 ] RECEIVE  HEARTBEAT                    node2→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node2 L=98 → local L=101
+[node1][L=102 ] RECEIVE  MUTEX_REQUEST                node3→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=MUTEX_REQUEST source=node3 L=101 → local L=102
+[node1][Ricart-Agrawala] REQUEST de node3 L=101 → REPLY inmediato
+[node1][L=103 ] SEND     MUTEX_REPLY                  node1→node3
+[node1][PeerConnMgr] Mensaje enviado a node3 type=MUTEX_REPLY L=103
+[node1][L=107 ] RECEIVE  APP                          node3→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=APP source=node3 L=106 → local L=107
+[node1][Ricart-Agrawala] ACQUIRE 'GROUP_REGISTRY': REQUEST L=108 → [node2, node3]
+[node1][L=108 ] SEND     MUTEX_REQUEST                node1→node2
+[node1][L=108 ] SEND     MUTEX_REQUEST                node1→node3
+[node1][PeerConnMgr] Mensaje enviado a node2 type=MUTEX_REQUEST L=108
+[node1][PeerConnMgr] Mensaje enviado a node3 type=MUTEX_REQUEST L=108
+[node1][L=110 ] RECEIVE  MUTEX_REQUEST                node2→node1
+[node1][L=109 ] SEND     APP_GROUP                    node1→*
+[node1][L=111 ] RECEIVE  MUTEX_REPLY                  node2→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=MUTEX_REPLY source=node2 L=110 → local L=111
+[node1][Ricart-Agrawala] REPLY de node2 — pendientes: [node3]
+[node1][PeerMessageHandler] Mensaje recibido: type=MUTEX_REQUEST source=node2 L=108 → local L=110
+[node1][Ricart-Agrawala] REQUEST de node2 L=108 → DEFERIDO (estado=WANTED)
+[Router] Mensaje grupal difundido a todos los nodos. L=109
+[node1][PeerConnMgr] Mensaje enviado a node2 type=APP L=109
+[node1][PeerConnMgr] Mensaje enviado a node3 type=APP L=109
+[node1][L=113 ] RECEIVE  MUTEX_REPLY                  node3→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=MUTEX_REPLY source=node3 L=112 → local L=113
+[node1][Ricart-Agrawala] REPLY de node3 — pendientes: []
+[node1][Ricart-Agrawala] HELD — todos los replies recibidos
+[node1][Ricart-Agrawala] RELEASED — respondiendo a 1 diferidos
+[node1][L=114 ] SEND     MUTEX_REPLY                  node1→node2
+[node1][PeerMessageHandler] Usuario maria se unió al grupo amigos (desde otro nodo)
+[node1][PeerConnMgr] Mensaje enviado a node2 type=MUTEX_REPLY L=114
+[node1][L=115 ] SEND     HEARTBEAT                    node1→node2
+[node1][L=116 ] SEND     HEARTBEAT                    node1→node3
+[node1][PeerConnMgr] Mensaje enviado a node2 type=HEARTBEAT L=115
+[node1][L=118 ] RECEIVE  HEARTBEAT                    node2→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node2 L=117 → local L=118
+[node1][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=116
+[node1][L=119 ] RECEIVE  HEARTBEAT                    node3→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=115 → local L=119
+[node1][L=120 ] RECEIVE  APP                          node3→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=APP source=node3 L=119 → local L=120
+[node1][PeerMessageHandler] Mensaje grupal entregado localmente a felipe
+[node1][L=121 ] SEND     HEARTBEAT                    node1→node2
+[node1][L=122 ] SEND     HEARTBEAT                    node1→node3
+[node1][PeerConnMgr] Mensaje enviado a node2 type=HEARTBEAT L=121
+[node1][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=122
+[node1][L=123 ] RECEIVE  HEARTBEAT                    node3→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=121 → local L=123
+[node1][L=124 ] RECEIVE  HEARTBEAT                    node2→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node2 L=122 → local L=124
+[node1][L=126 ] RECEIVE  USER_LOGOUT_ANNOUNCE         node3→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=USER_LOGOUT_ANNOUNCE source=node3 L=125 → local L=126
+[node1][PeerMessageHandler] Usuario maria desconectado remoto en nodo node3
+[node1][L=127 ] RECEIVE  USER_LOGOUT_ANNOUNCE         node3→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=USER_LOGOUT_ANNOUNCE source=node3 L=124 → local L=127
+[node1][PeerMessageHandler] Usuario maria desconectado remoto en nodo node3
+[node1][L=128 ] LOCAL    LOGOUT                       felipe@node1
+[node1][L=129 ] LOCAL    LOGOUT                       felipe@node1
+[node1][PeerConnMgr] Mensaje enviado a node3 type=USER_LOGOUT_ANNOUNCE L=128
+[node1][PeerConnMgr] Mensaje enviado a node3 type=USER_LOGOUT_ANNOUNCE L=129
+[node1][PeerConnMgr] Mensaje enviado a node2 type=USER_LOGOUT_ANNOUNCE L=129
+[node1][PeerConnMgr] Mensaje enviado a node2 type=USER_LOGOUT_ANNOUNCE L=128
+[node1][L=133 ] RECEIVE  USER_LOGOUT_ANNOUNCE         node2→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=USER_LOGOUT_ANNOUNCE source=node2 L=132 → local L=133
+[node1][PeerMessageHandler] Usuario luis desconectado remoto en nodo node2
+[node1][L=134 ] RECEIVE  USER_LOGOUT_ANNOUNCE         node2→node1
+[node1][PeerMessageHandler] Mensaje recibido: type=USER_LOGOUT_ANNOUNCE source=node2 L=133 → local L=134
+[node1][PeerMessageHandler] Usuario luis desconectado remoto en nodo node2
+[node1] Deteniendo ServerNode
+[node1][TcpPeerTransport] Deteniendo TcpPeerTransport
+[node1][PeerListener] PeerListener detenido
+[node1][TcpPeerTransport] TcpPeerTransport detenido
+
+========== LOG DE EVENTOS ORDENADO POR LAMPORT [node1] ==========
+SEQ   L       NODO   EVENTO   TIPO                         DETALLE
+--------------------------------------------------------------------------------
+1     L=1     [node1 ] SEND     PEER_HELLO                   node1→node2
+2     L=2     [node1 ] SEND     PEER_HELLO                   node1→node3
+3     L=3     [node1 ] RECEIVE  PEER_HELLO                   node3→node1
+4     L=4     [node1 ] RECEIVE  PEER_HELLO                   node2→node1
+5     L=5     [node1 ] SEND     PEER_HELLO_ACK               node1→node3
+6     L=6     [node1 ] SEND     PEER_HELLO_ACK               node1→node2
+7     L=7     [node1 ] RECEIVE  PEER_HELLO_ACK               node2→node1
+8     L=8     [node1 ] RECEIVE  PEER_HELLO_ACK               node3→node1
+9     L=9     [node1 ] SEND     HEARTBEAT                    node1→node2
+10    L=11    [node1 ] RECEIVE  HEARTBEAT                    node2→node1
+11    L=12    [node1 ] SEND     HEARTBEAT                    node1→node3
+12    L=13    [node1 ] RECEIVE  HEARTBEAT                    node3→node1
+13    L=14    [node1 ] SEND     HEARTBEAT                    node1→node2
+15    L=15    [node1 ] SEND     ELECTION                     node1→node2
+14    L=16    [node1 ] SEND     HEARTBEAT                    node1→node3
+18    L=17    [node1 ] SEND     ELECTION                     node1→node3
+16    L=18    [node1 ] RECEIVE  HEARTBEAT                    node2→node1
+17    L=19    [node1 ] RECEIVE  HEARTBEAT                    node3→node1
+19    L=20    [node1 ] RECEIVE  ELECTION_COORDINATOR         node3→node1
+20    L=24    [node1 ] RECEIVE  ELECTION_COORDINATOR         node3→node1
+21    L=26    [node1 ] RECEIVE  ELECTION_OK                  node3→node1
+22    L=27    [node1 ] RECEIVE  ELECTION_OK                  node2→node1
+23    L=28    [node1 ] RECEIVE  ELECTION_COORDINATOR         node3→node1
+24    L=33    [node1 ] RECEIVE  ELECTION_COORDINATOR         node3→node1
+25    L=34    [node1 ] SEND     HEARTBEAT                    node1→node2
+26    L=35    [node1 ] SEND     HEARTBEAT                    node1→node3
+27    L=36    [node1 ] SEND     MUTEX_REQUEST                node1→node2
+28    L=36    [node1 ] SEND     MUTEX_REQUEST                node1→node3
+29    L=37    [node1 ] RECEIVE  HEARTBEAT                    node3→node1
+30    L=38    [node1 ] RECEIVE  HEARTBEAT                    node2→node1
+31    L=39    [node1 ] RECEIVE  MUTEX_REQUEST                node3→node1
+32    L=40    [node1 ] SEND     MUTEX_REPLY                  node1→node3
+33    L=41    [node1 ] RECEIVE  MUTEX_REQUEST                node2→node1
+34    L=42    [node1 ] RECEIVE  MUTEX_REPLY                  node2→node1
+35    L=44    [node1 ] RECEIVE  MUTEX_REPLY                  node3→node1
+36    L=45    [node1 ] SEND     MUTEX_REPLY                  node1→node2
+37    L=47    [node1 ] RECEIVE  HEARTBEAT                    node3→node1
+38    L=48    [node1 ] SEND     HEARTBEAT                    node1→node2
+39    L=49    [node1 ] SEND     HEARTBEAT                    node1→node3
+40    L=50    [node1 ] RECEIVE  HEARTBEAT                    node2→node1
+41    L=51    [node1 ] SEND     HEARTBEAT                    node1→node2
+42    L=52    [node1 ] SEND     HEARTBEAT                    node1→node3
+43    L=53    [node1 ] RECEIVE  HEARTBEAT                    node3→node1
+44    L=54    [node1 ] RECEIVE  HEARTBEAT                    node2→node1
+45    L=55    [node1 ] LOCAL    LOGIN                        felipe@node1
+46    L=58    [node1 ] RECEIVE  USER_LOGIN_ANNOUNCE          node2→node1
+47    L=59    [node1 ] SEND     APP_PRIVATE                  node1→node2
+48    L=60    [node1 ] RECEIVE  USER_LOGIN_ANNOUNCE          node3→node1
+49    L=61    [node1 ] SEND     HEARTBEAT                    node1→node2
+50    L=62    [node1 ] SEND     HEARTBEAT                    node1→node3
+51    L=66    [node1 ] RECEIVE  HEARTBEAT                    node3→node1
+52    L=67    [node1 ] RECEIVE  HEARTBEAT                    node2→node1
+53    L=68    [node1 ] SEND     MUTEX_REQUEST                node1→node2
+54    L=68    [node1 ] SEND     MUTEX_REQUEST                node1→node3
+55    L=71    [node1 ] RECEIVE  MUTEX_REPLY                  node3→node1
+56    L=72    [node1 ] RECEIVE  MUTEX_REPLY                  node2→node1
+57    L=73    [node1 ] SEND     APP_CREATE_GROUP             node1→*
+58    L=76    [node1 ] RECEIVE  MUTEX_REQUEST                node2→node1
+59    L=77    [node1 ] RECEIVE  MUTEX_REQUEST                node3→node1
+60    L=78    [node1 ] SEND     MUTEX_REPLY                  node1→node2
+61    L=79    [node1 ] SEND     MUTEX_REPLY                  node1→node3
+62    L=82    [node1 ] RECEIVE  MUTEX_REQUEST                node2→node1
+63    L=83    [node1 ] SEND     MUTEX_REPLY                  node1→node2
+64    L=87    [node1 ] RECEIVE  APP                          node2→node1
+65    L=88    [node1 ] SEND     MUTEX_REQUEST                node1→node2
+66    L=88    [node1 ] SEND     MUTEX_REQUEST                node1→node3
+67    L=89    [node1 ] RECEIVE  MUTEX_REQUEST                node3→node1
+68    L=91    [node1 ] RECEIVE  MUTEX_REPLY                  node3→node1
+69    L=93    [node1 ] RECEIVE  MUTEX_REPLY                  node2→node1
+70    L=94    [node1 ] SEND     MUTEX_REPLY                  node1→node3
+71    L=95    [node1 ] SEND     HEARTBEAT                    node1→node2
+72    L=96    [node1 ] SEND     HEARTBEAT                    node1→node3
+73    L=100   [node1 ] RECEIVE  HEARTBEAT                    node3→node1
+74    L=101   [node1 ] RECEIVE  HEARTBEAT                    node2→node1
+75    L=102   [node1 ] RECEIVE  MUTEX_REQUEST                node3→node1
+76    L=103   [node1 ] SEND     MUTEX_REPLY                  node1→node3
+77    L=107   [node1 ] RECEIVE  APP                          node3→node1
+78    L=108   [node1 ] SEND     MUTEX_REQUEST                node1→node2
+79    L=108   [node1 ] SEND     MUTEX_REQUEST                node1→node3
+81    L=109   [node1 ] SEND     APP_GROUP                    node1→*
+80    L=110   [node1 ] RECEIVE  MUTEX_REQUEST                node2→node1
+82    L=111   [node1 ] RECEIVE  MUTEX_REPLY                  node2→node1
+83    L=113   [node1 ] RECEIVE  MUTEX_REPLY                  node3→node1
+84    L=114   [node1 ] SEND     MUTEX_REPLY                  node1→node2
+85    L=115   [node1 ] SEND     HEARTBEAT                    node1→node2
+86    L=116   [node1 ] SEND     HEARTBEAT                    node1→node3
+87    L=118   [node1 ] RECEIVE  HEARTBEAT                    node2→node1
+88    L=119   [node1 ] RECEIVE  HEARTBEAT                    node3→node1
+89    L=120   [node1 ] RECEIVE  APP                          node3→node1
+90    L=121   [node1 ] SEND     HEARTBEAT                    node1→node2
+91    L=122   [node1 ] SEND     HEARTBEAT                    node1→node3
+92    L=123   [node1 ] RECEIVE  HEARTBEAT                    node3→node1
+93    L=124   [node1 ] RECEIVE  HEARTBEAT                    node2→node1
+94    L=126   [node1 ] RECEIVE  USER_LOGOUT_ANNOUNCE         node3→node1
+95    L=127   [node1 ] RECEIVE  USER_LOGOUT_ANNOUNCE         node3→node1
+96    L=128   [node1 ] LOCAL    LOGOUT                       felipe@node1
+97    L=129   [node1 ] LOCAL    LOGOUT                       felipe@node1
+98    L=133   [node1 ] RECEIVE  USER_LOGOUT_ANNOUNCE         node2→node1
+99    L=134   [node1 ] RECEIVE  USER_LOGOUT_ANNOUNCE         node2→node1
+================================================================================
+[node1][EventLogger] Log escrito en /Users/felipeastudillo/Desktop/Proyectos/Universidad/Proyecto_Paralela/Parte_Fin<l/Aplicacion-WhatsApp/logs/events-node1.log (99 eventos)
+[node1] ServerNode detenido

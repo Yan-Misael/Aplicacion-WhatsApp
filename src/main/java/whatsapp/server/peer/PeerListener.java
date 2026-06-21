@@ -1,6 +1,13 @@
 package whatsapp.server.peer;
 
+import whatsapp.server.clock.EventLogger;
+import whatsapp.server.clock.LamportClock;
+import whatsapp.server.election.BullyElectionCoordinator;
+import whatsapp.server.handlers.ManejadorCliente;
+import whatsapp.server.managers.DistributedGroupManager;
+import whatsapp.server.managers.LocalSessionManager;
 import whatsapp.server.membership.MembershipManager;
+import whatsapp.server.mutex.RicartAgrawalaCoordinator;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -10,61 +17,55 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import whatsapp.server.directory.GlobalUserDirectory;
-import whatsapp.server.handlers.ManejadorCliente;
-import whatsapp.server.managers.DistributedGroupManager;
-import whatsapp.server.managers.LocalSessionManager;
-import whatsapp.server.membership.MembershipManager;
-
 public class PeerListener implements Runnable {
     private final int peerPort;
     private final String selfNodeId;
     private final ExecutorService peerWorkerPool;
     private final MembershipManager membershipManager;
     private final PeerConnectionManager connectionManager;
+    private final DistributedGroupManager distributedGroupManager;
+    private final LocalSessionManager<ManejadorCliente> localSessionManager;
+    private final whatsapp.server.directory.GlobalUserDirectory globalUserDirectory;
+    private final LamportClock lamportClock;
+    private final EventLogger eventLogger;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final CountDownLatch readyLatch = new CountDownLatch(1);
     private ServerSocket serverSocket;
 
-    // Coordinadores de coordinación distribuida (inyectados tras creación del transporte)
+    // Coordinadores inyectados tras creación
     private volatile RicartAgrawalaCoordinator ricartCoordinator;
     private volatile BullyElectionCoordinator bullyCoordinator;
 
-    /**
-     * Construye el listener inter-nodo.
-     *
-     * @param peerPort          puerto en el que escuchar conexiones de peers
-     * @param selfNodeId        identificador del nodo local (para logs)
-     * @param peerWorkerPool    pool de hilos para procesar mensajes
-     * @param membershipManager membresía del nodo local
-     * @param connectionManager manager de conexiones salientes
-     */
     public PeerListener(
             int peerPort,
             String selfNodeId,
             ExecutorService peerWorkerPool,
             MembershipManager membershipManager,
-            PeerConnectionManager connectionManager
+            PeerConnectionManager connectionManager,
+            DistributedGroupManager distributedGroupManager,
+            LocalSessionManager<ManejadorCliente> localSessionManager,
+            whatsapp.server.directory.GlobalUserDirectory globalUserDirectory,
+            LamportClock lamportClock,
+            EventLogger eventLogger
     ) {
         this.peerPort = peerPort;
         this.selfNodeId = selfNodeId;
         this.peerWorkerPool = peerWorkerPool;
         this.membershipManager = membershipManager;
         this.connectionManager = connectionManager;
+        this.distributedGroupManager = distributedGroupManager;
+        this.localSessionManager = localSessionManager;
+        this.globalUserDirectory = globalUserDirectory;
+        this.lamportClock = lamportClock;
+        this.eventLogger = eventLogger;
     }
 
-    /**
-     * Abre el {@link ServerSocket} de forma síncrona en el hilo que llama a
-     * este método (normalmente el hilo principal de arranque del nodo).
-     *
-     * <p>Debe invocarse y completarse ANTES de lanzar {@link #run()} en su
-     * hilo dedicado y ANTES de enviar cualquier PEER_HELLO a otros peers.
-     * Esto elimina la ventana de carrera en la que un nodo intenta conectarse
-     * a un peer cuyo listener aún no está aceptando conexiones.</p>
-     *
-     * @throws IOException si no se pudo abrir el socket en {@code peerPort}
-     */
+    public void setCoordinators(RicartAgrawalaCoordinator ricart, BullyElectionCoordinator bully) {
+        this.ricartCoordinator = ricart;
+        this.bullyCoordinator = bully;
+    }
+
     public void openServerSocket() throws IOException {
         serverSocket = new ServerSocket(peerPort);
         running.set(true);
@@ -91,7 +92,14 @@ public class PeerListener implements Runnable {
                             peerSocket,
                             membershipManager,
                             connectionManager,
-                            selfNodeId
+                            selfNodeId,
+                            ricartCoordinator,
+                            bullyCoordinator,
+                            distributedGroupManager,
+                            localSessionManager,
+                            globalUserDirectory,
+                            lamportClock,
+                            eventLogger
                     ));
 
                 } catch (SocketException e) {

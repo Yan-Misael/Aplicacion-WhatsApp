@@ -5,6 +5,7 @@ import whatsapp.server.clock.LamportClock;
 import whatsapp.server.config.NodeConfig;
 import whatsapp.server.directory.GlobalUserDirectory;
 import whatsapp.server.election.BullyElectionCoordinator;
+import whatsapp.server.handlers.ManejadorCliente;
 import whatsapp.server.managers.DistributedGroupManager;
 import whatsapp.server.managers.LocalSessionManager;
 import whatsapp.server.membership.MembershipManager;
@@ -50,7 +51,7 @@ public class ServerNode {
     private final MembershipManager membershipManager;
     private final GlobalUserDirectory globalUserDirectory;
     private final DistributedGroupManager distributedGroupManager;
-    private final LocalSessionManager<Object> localSessionManager;
+    private final LocalSessionManager<ManejadorCliente> localSessionManager;
 
     private final TcpPeerTransport peerTransport;
     private final MessageRouter messageRouter;
@@ -74,7 +75,7 @@ public class ServerNode {
         this.membershipManager     = new MembershipManager(selfInfo, config.getPeers());
         this.globalUserDirectory   = new GlobalUserDirectory();
         this.distributedGroupManager = new DistributedGroupManager();
-        this.localSessionManager   = new LocalSessionManager<>();
+        this.localSessionManager   = new LocalSessionManager<ManejadorCliente>();
 
         this.lamportClock = new LamportClock();
         this.eventLogger  = new EventLogger(config.getNodeId());
@@ -85,15 +86,23 @@ public class ServerNode {
                 config.getPeerPort(),
                 peerWorkerPool,
                 membershipManager,
-                config.getPeerSocketTimeoutMs()
+                config.getPeerSocketTimeoutMs(),
+                lamportClock,
+                eventLogger,
+                distributedGroupManager,
+                localSessionManager,
+                globalUserDirectory
         );
 
         this.messageRouter = new MessageRouter(
                 config.getNodeId(),
+                localSessionManager,
                 globalUserDirectory,
                 distributedGroupManager,
                 membershipManager,
-                peerTransport
+                peerTransport,
+                lamportClock,
+                eventLogger
         );
 
         // --- Coordinación distribuida (Punto 2.3) ---
@@ -229,6 +238,52 @@ public class ServerNode {
         );
 
         log("ServerNode iniciado — Ricart-Agrawala y Bully activos.");
+
+        startClientListener();
+    }
+
+    private java.net.ServerSocket clientServerSocket;
+    private volatile boolean runningClientListener = false;
+
+    private void startClientListener() {
+        runningClientListener = true;
+        clientWorkerPool.submit(() -> {
+            try {
+                clientServerSocket = new java.net.ServerSocket(config.getClientPort());
+                log("ClientListener escuchando en puerto " + config.getClientPort());
+                while (runningClientListener) {
+                    java.net.Socket socketCliente = clientServerSocket.accept();
+                    log("Nueva conexión de cliente desde: " + socketCliente.getInetAddress());
+                    ManejadorCliente manejador = new ManejadorCliente(
+                            socketCliente,
+                            localSessionManager,
+                            globalUserDirectory,
+                            distributedGroupManager,
+                            messageRouter,
+                            peerTransport,
+                            config.getNodeId(),
+                            lamportClock,
+                            eventLogger
+                    );
+                    manejador.start();
+                }
+            } catch (IOException e) {
+                if (runningClientListener) {
+                    log("Error en ClientListener: " + e.getMessage());
+                }
+            }
+        });
+    }
+
+    private void stopClientListener() {
+        runningClientListener = false;
+        try {
+            if (clientServerSocket != null) {
+                clientServerSocket.close();
+            }
+        } catch (IOException e) {
+            log("Error cerrando ClientListener: " + e.getMessage());
+        }
     }
 
     /**
@@ -236,6 +291,8 @@ public class ServerNode {
      */
     public void stop() {
         log("Deteniendo ServerNode");
+
+        stopClientListener();
 
         peerTransport.stop();
 

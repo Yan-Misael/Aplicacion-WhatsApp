@@ -1,11 +1,15 @@
 package whatsapp.server.handlers;
 
 import whatsapp.common.models.*;
+import whatsapp.server.clock.EventLogger;
+import whatsapp.server.clock.LamportClock;
 import whatsapp.server.directory.GlobalUserDirectory;
 import whatsapp.server.managers.DistributedGroupManager;
 import whatsapp.server.managers.LocalSessionManager;
 import whatsapp.server.messages.NodeMessage;
 import whatsapp.server.messages.NodeMessageType;
+import whatsapp.server.messages.UserLoginAnnounceMessage;
+import whatsapp.server.messages.UserLogoutAnnounceMessage;
 import whatsapp.server.peer.PeerTransport;
 import whatsapp.server.routing.MessageRouter;
 
@@ -23,6 +27,8 @@ public class ManejadorCliente extends Thread {
     private final MessageRouter messageRouter;
     private final PeerTransport peerTransport;
     private final String localNodeId;
+    private final LamportClock lamportClock;
+    private final EventLogger eventLogger;
 
     private ObjectOutputStream out;
     private ObjectInputStream in;
@@ -34,7 +40,9 @@ public class ManejadorCliente extends Thread {
                             DistributedGroupManager distributedGroupManager,
                             MessageRouter messageRouter,
                             PeerTransport peerTransport,
-                            String localNodeId) {
+                            String localNodeId,
+                            LamportClock lamportClock,
+                            EventLogger eventLogger) {
         this.socket = socket;
         this.localSessionManager = localSessionManager;
         this.globalUserDirectory = globalUserDirectory;
@@ -42,6 +50,8 @@ public class ManejadorCliente extends Thread {
         this.messageRouter = messageRouter;
         this.peerTransport = peerTransport;
         this.localNodeId = localNodeId;
+        this.lamportClock = lamportClock;
+        this.eventLogger = eventLogger;
     }
 
     @Override
@@ -72,14 +82,18 @@ public class ManejadorCliente extends Thread {
             boolean registrado = localSessionManager.registerLocalSession(userId, this);
             if (registrado) {
                 this.idUsuarioAsignado = userId;
+
                 // 2. Anunciar al directorio global
                 globalUserDirectory.registerUserLocation(userId, localNodeId);
-                // 3. Notificar a otros nodos (opcional pero recomendado)
-                NodeMessage announce = new NodeMessage(localNodeId, "*", NodeMessageType.USER_LOGIN_ANNOUNCE, 0L);
+
+                // 3. Tick de Lamport y broadcast USER_LOGIN_ANNOUNCE
+                long ts = lamportClock.tick();
+                eventLogger.logLocal("LOGIN", userId + "@" + localNodeId, ts);
+                UserLoginAnnounceMessage announce = new UserLoginAnnounceMessage(localNodeId, "*", userId, ts);
                 peerTransport.broadcast(announce);
 
                 enviarObjeto(new PaqueteConfirm(userId, true, "Login con éxito"));
-                System.out.println("Usuario " + userId + " autenticado en " + localNodeId);
+                System.out.println("Usuario " + userId + " autenticado en " + localNodeId + " L=" + ts);
             } else {
                 enviarObjeto(new PaqueteError(userId, "ID ya en uso en este nodo."));
                 liberarRecursos();
@@ -134,18 +148,12 @@ public class ManejadorCliente extends Thread {
 
     private void liberarRecursos() {
         if (idUsuarioAsignado != null) {
-            // Eliminar sesión local
             localSessionManager.removeLocalSession(idUsuarioAsignado);
-            // Eliminar del directorio global
             globalUserDirectory.removeUserLocation(idUsuarioAsignado);
-            // Remover de todos los grupos locales (opcional)
-            // Nota: si no tienes un método para obtener todos los grupos,
-            // puedes omitir esta parte; el sweeper limpiará cuando el nodo caiga.
-            // Por seguridad, si tienes un método getAllGroupIds(), úsalo.
-            // Ejemplo:
-            // for (String grupo : distributedGroupManager.getAllGroupIds()) {
-            //     distributedGroupManager.removeMember(grupo, idUsuarioAsignado);
-            // }
+            long ts = lamportClock.tick();
+            eventLogger.logLocal("LOGOUT", idUsuarioAsignado + "@" + localNodeId, ts);
+            UserLogoutAnnounceMessage announce = new UserLogoutAnnounceMessage(localNodeId, "*", idUsuarioAsignado, ts);
+            peerTransport.broadcast(announce);
         }
         try { if (out != null) out.close(); } catch (IOException ignored) {}
         try { if (socket != null && !socket.isClosed()) socket.close(); } catch (IOException ignored) {}
