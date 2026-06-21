@@ -1,2 +1,0 @@
-Error: Could not find or load main class whatsapp.server.core.ServerNode
-Caused by: java.lang.ClassNotFoundException: whatsapp.server.core.ServerNode

@@ -193,7 +193,8 @@ public class ServerNode {
         HeartbeatSweeperTask sweeperTask = new HeartbeatSweeperTask(
                 config.getNodeId(),
                 membershipManager,
-                heartbeatTimeout,
+                config.getHeartbeatTimeoutMs(),
+                globalUserDirectory,
                 ricartCoordinator,
                 bullyCoordinator
         );

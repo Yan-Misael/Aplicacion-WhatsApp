@@ -8,26 +8,26 @@ $OutFile = Join-Path $OutDir "coordination-analysis.txt"
 
 if (!(Test-Path $Jar)) {
     Write-Host "ERROR: No existe el JAR:" $Jar -ForegroundColor Red
-    Write-Host "Compila primero desde NetBeans con Clean and Build."
+    Write-Host "Compila primero con: mvn clean package -DskipTests"
     pause
     exit 1
 }
 
 New-Item -ItemType Directory -Force $OutDir | Out-Null
 
-# Ajusta estos nombres según los logs que tengas.
+# Preferir EventLogger porque tiene formato estable y eventos ordenados por Lamport.
 $LogFiles = @(
-    "logs\node1-console.log",
-    "logs\node2-console.log",
-    "logs\node3-console.log"
+    "logs\events-node1.log",
+    "logs\events-node2.log",
+    "logs\events-node3.log"
 )
 
-# Si no existen dentro de logs/, usa los logs antiguos de la raíz.
+# Fallback a consola si aún no se escribieron los events-nodeX.log.
 if (!(Test-Path $LogFiles[0])) {
     $LogFiles = @(
-        "n1.log",
-        "n2.log",
-        "n3.log"
+        "logs\node1-console.log",
+        "logs\node2-console.log",
+        "logs\node3-console.log"
     )
 }
 

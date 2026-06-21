@@ -27,7 +27,7 @@ public class ServidorPrincipal {
     private static final String NODE_ID = "local";
 
     public static void main(String[] args) {
-        System.out.println("=== Iniciando Servidor Central de WhatsApp ===");
+        System.out.println("=== Iniciando Nodo Servidor de WhatsApp ===");
 
         LocalSessionManager<ManejadorCliente> sessionManager = new LocalSessionManager<>();
         DistributedGroupManager groupManager = new DistributedGroupManager();

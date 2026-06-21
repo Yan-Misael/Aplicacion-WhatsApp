@@ -96,7 +96,7 @@ public class ClienteNodo {
             out = new ObjectOutputStream(socket.getOutputStream());
             in = new ObjectInputStream(socket.getInputStream());
 
-            System.out.println("=== Conectado al Servidor Central ===");
+            System.out.println("=== Conectado al Servidor ServerNode ===");
             
             // Hilo 1: Escucha activa de red (Asíncrono)
             Thread listenerThread = new Thread(this::escucharServidor);

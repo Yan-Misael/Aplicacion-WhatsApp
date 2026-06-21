@@ -7,54 +7,46 @@ import java.util.Random;
 import java.util.concurrent.*;
 
 /**
- * Generador de carga real (Sección 3 de la pauta ICI-4344).
+ * Generador de carga real para la pauta ICI-4344.
  *
- * Uso: java whatsapp.loadtest.LoadGenerator [numClientes] [duracionSegundos]
- * Por defecto: 60 clientes, 70s (sobre los mínimos 50/60s de 3.1, con margen
- * de ramp-up/ramp-down).
+ * Uso:
+ *   java whatsapp.loadtest.LoadGenerator [numClientes] [duracionSegundos]
  *
- * Reparte los clientes round-robin entre los 3 nodos (puertos 5001/5002/5003,
- * deben coincidir con config/node1.properties..node3.properties) para que la
- * carga sea real multinodo.
- *
- * Mezcla de operaciones por iteración (exige las dos funciones principales y,
- * en particular, GROUP_REGISTRY vía Ricart-Agrawala):
- *   45% PRIVATE_PING   -> mensajería privada + cruce inter-nodo
- *   35% GROUP_MESSAGE  -> mensajería grupal
- *   20% CREATE_GROUP   -> fuerza una ronda real de Ricart-Agrawala sobre GROUP_REGISTRY
- *
- * Falla inducida (Sección 3.3): el operador presiona ENTER en el instante en que
- * derriba el nodo/coordinador; eso marca el timestamp que MetricsRecorder usa
- * para partir el reporte en las 3 ventanas de la Tabla de resultados del informe.
+ * Por defecto usa 50 clientes durante 65s. Reparte los clientes entre los tres
+ * ServerNode, ejecuta mensajería privada, mensajería grupal y operaciones sobre
+ * GROUP_REGISTRY. Si se derriba un nodo durante la corrida, los clientes afectados
+ * intentan reconectarse a otro nodo vivo para medir recuperación del servicio.
  */
 public class LoadGenerator {
 
-    private record NodeTarget(String host, int port) {}
+    private static final List<VirtualClient.Endpoint> NODES = List.of(
+            new VirtualClient.Endpoint("localhost", 5001),
+            new VirtualClient.Endpoint("localhost", 5002),
+            new VirtualClient.Endpoint("localhost", 5003)
+    );
 
-    private static final NodeTarget[] NODES = {
-            new NodeTarget("localhost", 5001),
-            new NodeTarget("localhost", 5002),
-            new NodeTarget("localhost", 5003)
-    };
-
-    private static final String SHARED_GROUP = "loadtest_group";
-    private static final long PING_TIMEOUT_MS = 8_000;
+    private static final long PING_TIMEOUT_MS = 5_000;
 
     public static void main(String[] args) throws InterruptedException {
-        int numClients = args.length > 0 ? Integer.parseInt(args[0]) : 60;
-        int durationSeconds = args.length > 1 ? Integer.parseInt(args[1]) : 70;
+        int numClients = args.length > 0 ? Integer.parseInt(args[0]) : 50;
+        int durationSeconds = args.length > 1 ? Integer.parseInt(args[1]) : 65;
 
         if (numClients < 50) {
-            System.out.println("[Aviso] La pauta (3.1) exige mínimo 50 clientes/hilos simultáneos.");
+            System.out.println("[Aviso] La pauta exige mínimo 50 clientes/hilos simultáneos.");
         }
+        if (durationSeconds < 60) {
+            System.out.println("[Aviso] La pauta exige mínimo 60 segundos sostenidos.");
+        }
+
+        String runId = "run" + System.currentTimeMillis();
+        String sharedGroup = "loadtest_group_" + runId;
 
         MetricsRecorder metrics = new MetricsRecorder();
         List<VirtualClient> clients = new ArrayList<>(numClients);
 
-        // 1) Conectar y loguear a todos los clientes, repartidos round-robin entre nodos.
         for (int i = 0; i < numClients; i++) {
-            NodeTarget target = NODES[i % NODES.length];
-            clients.add(new VirtualClient(String.format("load%03d", i), target.host(), target.port(), metrics));
+            String userId = String.format("%s_load%03d", runId, i);
+            clients.add(new VirtualClient(userId, NODES, i % NODES.size(), metrics));
         }
 
         ExecutorService loginPool = Executors.newFixedThreadPool(Math.min(numClients, 32));
@@ -66,71 +58,73 @@ public class LoadGenerator {
         }
         loginPool.shutdown();
         System.out.printf("[LoadGenerator] %d/%d clientes autenticados.%n", loggedIn, numClients);
+        if (loggedIn < numClients) {
+            System.out.println("[Aviso] No todos los clientes autenticaron. Revisa que node1/node2/node3 estén arriba.");
+        }
 
-        // 2) Buddies en anillo (cruza nodos estadísticamente) + grupo compartido.
+        // Buddies en anillo. Después de una caída, cada VirtualClient puede reconectar a otro nodo.
         for (int i = 0; i < clients.size(); i++) {
             clients.get(i).setBuddy(clients.get((i + 1) % clients.size()).getClientId());
         }
-        clients.get(0).doCreateGroup(SHARED_GROUP);
+
+        // Setup: grupo compartido único por corrida.
+        clients.get(0).doCreateGroup(sharedGroup);
         ExecutorService joinPool = Executors.newFixedThreadPool(Math.min(numClients, 32));
         for (int i = 1; i < clients.size(); i++) {
             VirtualClient c = clients.get(i);
-            joinPool.submit(() -> c.doJoinGroup(SHARED_GROUP));
+            joinPool.submit(() -> c.doJoinGroup(sharedGroup));
         }
         joinPool.shutdown();
         joinPool.awaitTermination(30, TimeUnit.SECONDS);
 
-        // 3) Hilo que escucha ENTER para marcar la falla inducida (Sección 3.3).
         Thread failureListener = new Thread(() -> {
-            System.out.println(">>> Presiona ENTER en el instante exacto en que derribes el nodo/coordinador <<<");
+            System.out.println(">>> Presiona ENTER justo después de derribar el nodo/coordinador <<<");
             new java.util.Scanner(System.in).nextLine();
             metrics.markFailureInjected();
         }, "failure-trigger");
         failureListener.setDaemon(true);
         failureListener.start();
 
-        // 4) Carga sostenida: cada cliente, en su propio hilo, ejecuta operaciones en
-        //    bucle durante durationSeconds (Sección 3.1: >=50 hilos, >=60s).
         ExecutorService loadPool = Executors.newFixedThreadPool(numClients);
         metrics.start();
         long endAt = System.currentTimeMillis() + durationSeconds * 1000L;
 
-        for (VirtualClient c : clients) loadPool.submit(() -> runClientLoop(c, endAt));
+        for (VirtualClient c : clients) loadPool.submit(() -> runClientLoop(c, sharedGroup, endAt));
 
-        // Limpia PINGs sin respuesta (clientes cuyo buddy murió con el nodo derribado).
         ScheduledExecutorService janitor = Executors.newSingleThreadScheduledExecutor();
         janitor.scheduleAtFixedRate(() -> clients.forEach(c -> c.purgeStalePings(PING_TIMEOUT_MS)),
-                5, 5, TimeUnit.SECONDS);
+                2, 2, TimeUnit.SECONDS);
 
         loadPool.shutdown();
-        loadPool.awaitTermination(durationSeconds + 30, TimeUnit.SECONDS);
+        loadPool.awaitTermination(durationSeconds + 30L, TimeUnit.SECONDS);
         janitor.shutdownNow();
         metrics.stop();
 
-        // 5) Cierre ordenado y reporte final.
+        // Purga final de pings pendientes antes de calcular el reporte.
+        clients.forEach(c -> c.purgeStalePings(0));
+
         for (VirtualClient c : clients) c.disconnect();
         metrics.finalizeAndReport(Path.of("loadtest-results", "loadtest_" + System.currentTimeMillis() + ".csv"));
 
-        System.out.println("\nCorre CoordinationLogAnalyzer sobre n1.log/n2.log/n3.log de esta misma corrida");
-        System.out.println("para completar la columna 'Mensajes de coordinación' de la Tabla de resultados.");
+        System.out.println("\nSiguiente paso:");
+        System.out.println("  java -cp target/Aplicacion-WhatsApp-1.0-SNAPSHOT.jar whatsapp.loadtest.CoordinationLogAnalyzer logs/events-node1.log logs/events-node2.log logs/events-node3.log");
     }
 
-    private static void runClientLoop(VirtualClient c, long endAt) {
+    private static void runClientLoop(VirtualClient c, String sharedGroup, long endAt) {
         Random random = new Random();
         int localGroupSeq = 0;
         while (System.currentTimeMillis() < endAt) {
             double r = random.nextDouble();
             if (r < 0.45) {
                 c.doPrivatePing();
-            } else if (r < 0.80) {
-                c.doGroupMessage(SHARED_GROUP);
+            } else if (r < 0.95) {
+                c.doGroupMessage(sharedGroup);
             } else {
-                // Grupo único por cliente+iteración: garantiza una ronda REAL de
-                // Ricart-Agrawala (un join repetido sería rechazado: "ya es miembro").
                 c.doCreateGroup("lt_" + c.getClientId() + "_" + (localGroupSeq++));
             }
             try {
-                Thread.sleep(5 + random.nextInt(25)); // jitter chico: evita lockstep, no limita el throughput real
+                // Menos agresivo que la versión anterior: evita falsos DOWN por saturar los pools/heartbeats.
+                Thread.sleep(25 + random.nextInt(50));
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return;

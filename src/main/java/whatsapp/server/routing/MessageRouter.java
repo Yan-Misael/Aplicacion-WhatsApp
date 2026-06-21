@@ -65,12 +65,31 @@ public class MessageRouter {
             remitente.enviarObjeto(new PaqueteError("Servidor", "Usuario '" + destino + "' no conectado."));
             return;
         }
-
+        String targetNodeId = nodeId.get();
         // 3. Reenviar a otro nodo con timestamp Lamport correcto
         long ts = lamportClock.tick();
-        AppMessage appMsg = new AppMessage(selfNodeId, nodeId.get(), msg, ts);
-        eventLogger.logSend("APP_PRIVATE", selfNodeId + "→" + nodeId.get(), ts);
-        peerTransport.sendToNode(nodeId.get(), appMsg);
+        AppMessage appMsg = new AppMessage(selfNodeId, targetNodeId, msg, ts);
+        eventLogger.logSend("APP_PRIVATE", selfNodeId + "→" + targetNodeId, ts);
+        
+        try {
+            peerTransport.sendToNode(targetNodeId, appMsg);
+
+            System.out.println("[Router] Mensaje privado reenviado a nodo " + targetNodeId
+                    + " para " + destino + " L=" + ts);
+        } catch (RuntimeException e) {
+            globalUserDirectory.removeUsersByNode(targetNodeId);
+
+            remitente.enviarObjeto(new PaqueteError(
+                    "Servidor",
+                    "No se pudo contactar el nodo " + targetNodeId
+                            + " para entregar el mensaje a '" + destino + "'."
+            ));
+
+            System.err.println("[Router] ERROR enviando mensaje privado a nodo " + targetNodeId
+                    + ". Se limpió el directorio asociado. Causa: " + e.getMessage());
+
+            throw e;
+        }
         System.out.println("[Router] Mensaje privado reenviado a nodo " + nodeId.get()
                 + " para " + destino + " L=" + ts);
     }

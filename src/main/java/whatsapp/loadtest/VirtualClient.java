@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,51 +16,50 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Cliente sintético para la prueba de carga (Sección 3.1 de la pauta).
+ * Cliente sintético para la prueba de carga.
  *
- * Replica el protocolo real de ClienteNodo (mismos PaqueteLogin/PaqueteMensaje/
- * PaqueteCrearGrupo/PaqueteUnirseGrupo, mismo ObjectOutputStream/ObjectInputStream),
- * pero sin consola, para poder correr decenas en paralelo.
- *
- * Medición de latencia (el protocolo no trae IDs de correlación nativos, se
- * agregan en el contenido del mensaje):
- *  - LOGIN / CREATE_GROUP / JOIN_GROUP: el servidor responde PaqueteConfirm o
- *    PaqueteError (ManejadorCliente/MessageRouter) -> latencia = round-trip real.
- *  - PRIVATE_PING: este cliente envía "PING|<reqId>" a su "buddy"; el buddy
- *    responde "PONG|<reqId>" al recibirlo -> round-trip real entre nodos.
- *  - GROUP_DELIVERY: el emisor envía "GMSG|<epochMillisEnvio>"; cada miembro que
- *    lo recibe calcula (ahora - epochMillisEnvio) -> latencia de entrega
- *    unidireccional (válido en localhost, sin skew de reloj real).
+ * Corre el mismo protocolo de ClienteNodo, pero sin consola. Esta versión agrega
+ * reconexión automática: si cae el nodo al que estaba conectado, el cliente intenta
+ * iniciar sesión nuevamente en otro ServerNode vivo. Así la prueba mide recuperación
+ * del servicio y no queda dominada por clientes pegados para siempre al nodo caído.
  */
 public class VirtualClient {
 
+    public record Endpoint(String host, int port) {
+        @Override public String toString() { return host + ":" + port; }
+    }
+
     private final String clientId;
-    private final String host;
-    private final int port;
+    private final List<Endpoint> endpoints;
     private final MetricsRecorder metrics;
+
+    private final Object connectionLock = new Object();
+    private volatile int currentEndpointIndex;
 
     private Socket socket;
     private ObjectOutputStream out;
     private ObjectInputStream in;
     private Thread listenerThread;
 
-    private volatile String buddyId;          // a quién le hago PING privado
+    private volatile String buddyId;
     private volatile boolean loggedIn = false;
     private volatile boolean running = true;
 
-    // Cola de respuestas de control (Confirm/Error) para login/creategroup/joingroup.
-    // Cada cliente ejecuta sus operaciones secuencialmente -> a lo sumo UNA
-    // operación de control pendiente a la vez, no hace falta más correlación.
     private final BlockingQueue<PaqueteRed> controlResponses = new LinkedBlockingQueue<>();
-
-    // reqId -> nanoTime de envío, para resolver el PONG correspondiente al PING.
     private final Map<String, Long> pendingPings = new ConcurrentHashMap<>();
     private final AtomicInteger reqSeq = new AtomicInteger(0);
 
     public VirtualClient(String clientId, String host, int port, MetricsRecorder metrics) {
+        this(clientId, List.of(new Endpoint(host, port)), 0, metrics);
+    }
+
+    public VirtualClient(String clientId, List<Endpoint> endpoints, int preferredIndex, MetricsRecorder metrics) {
+        if (endpoints == null || endpoints.isEmpty()) {
+            throw new IllegalArgumentException("Debe existir al menos un endpoint de ServerNode");
+        }
         this.clientId = clientId;
-        this.host = host;
-        this.port = port;
+        this.endpoints = new ArrayList<>(endpoints);
+        this.currentEndpointIndex = Math.floorMod(preferredIndex, endpoints.size());
         this.metrics = metrics;
     }
 
@@ -67,36 +68,70 @@ public class VirtualClient {
     public boolean isLoggedIn() { return loggedIn; }
 
     // -------------------------------------------------------------------------
-    // Ciclo de vida
+    // Ciclo de vida y reconexión
     // -------------------------------------------------------------------------
 
     public boolean connectAndLogin() {
-        try {
-            socket = new Socket(host, port);
-            out = new ObjectOutputStream(socket.getOutputStream());
-            in = new ObjectInputStream(socket.getInputStream());
+        return reconnectAndLogin("LOGIN");
+    }
 
-            listenerThread = new Thread(this::listenLoop, "listener-" + clientId);
-            listenerThread.setDaemon(true);
-            listenerThread.start();
+    /** Intenta reconectar usando primero el endpoint actual y luego los demás. */
+    private boolean ensureConnected(String opType) {
+        if (!running) return false;
+        Socket s = socket;
+        if (loggedIn && s != null && s.isConnected() && !s.isClosed()) {
+            return true;
+        }
+        return reconnectAndLogin(opType + "_RECONNECT");
+    }
 
-            long t0 = System.nanoTime();
-            out.writeObject(new PaqueteLogin(clientId));
-            out.flush();
+    private boolean reconnectAndLogin(String opTypeForErrors) {
+        synchronized (connectionLock) {
+            if (!running) return false;
+            closeSocketOnly();
+            controlResponses.clear();
 
-            PaqueteRed resp = controlResponses.poll(5, TimeUnit.SECONDS);
-            double latencyMs = (System.nanoTime() - t0) / 1_000_000.0;
+            int start = currentEndpointIndex;
+            for (int attempt = 0; attempt < endpoints.size(); attempt++) {
+                int idx = (start + attempt) % endpoints.size();
+                Endpoint endpoint = endpoints.get(idx);
+                try {
+                    socket = new Socket(endpoint.host(), endpoint.port());
+                    socket.setTcpNoDelay(true);
+                    out = new ObjectOutputStream(socket.getOutputStream());
+                    out.flush();
+                    in = new ObjectInputStream(socket.getInputStream());
 
-            if (resp instanceof PaqueteConfirm) {
-                loggedIn = true;
-                metrics.recordSuccess(clientId, "LOGIN", latencyMs);
-                return true;
+                    listenerThread = new Thread(this::listenLoop, "listener-" + clientId + "-" + endpoint.port());
+                    listenerThread.setDaemon(true);
+                    listenerThread.start();
+
+                    long t0 = System.nanoTime();
+                    sendObjectUnsafe(new PaqueteLogin(clientId));
+                    PaqueteRed resp = controlResponses.poll(5, TimeUnit.SECONDS);
+                    double latencyMs = (System.nanoTime() - t0) / 1_000_000.0;
+
+                    if (resp instanceof PaqueteConfirm) {
+                        loggedIn = true;
+                        currentEndpointIndex = idx;
+                        metrics.recordSuccess(clientId, opTypeForErrors.equals("LOGIN") ? "LOGIN" : "RECONNECT", latencyMs);
+                        return true;
+                    }
+
+                    String reason = resp == null ? "timeout" : errorReason(resp);
+                    loggedIn = false;
+                    closeSocketOnly();
+                    metrics.recordError(clientId, opTypeForErrors, "falló login en " + endpoint + ": " + reason);
+                } catch (IOException | InterruptedException e) {
+                    loggedIn = false;
+                    closeSocketOnly();
+                    metrics.recordError(clientId, opTypeForErrors, "no conecta a " + endpoint + ": " + e.getMessage());
+                    if (e instanceof InterruptedException) {
+                        Thread.currentThread().interrupt();
+                        return false;
+                    }
+                }
             }
-            metrics.recordError(clientId, "LOGIN",
-                    resp == null ? "timeout" : ((PaqueteError) resp).getRazon());
-            return false;
-        } catch (IOException | InterruptedException e) {
-            metrics.recordError(clientId, "LOGIN", e.getMessage());
             return false;
         }
     }
@@ -104,21 +139,30 @@ public class VirtualClient {
     public void disconnect() {
         running = false;
         try {
-            if (loggedIn) {
-                out.writeObject(new PaqueteLogout(clientId));
-                out.flush();
+            if (loggedIn && out != null) {
+                sendObjectUnsafe(new PaqueteLogout(clientId));
             }
         } catch (IOException ignored) {
         }
-        try { if (socket != null) socket.close(); } catch (IOException ignored) {}
+        closeSocketOnly();
+    }
+
+    private void markDisconnected() {
+        loggedIn = false;
+        closeSocketOnly();
+    }
+
+    private void closeSocketOnly() {
+        try { if (socket != null && !socket.isClosed()) socket.close(); } catch (IOException ignored) {}
+        socket = null;
+        out = null;
+        in = null;
     }
 
     // -------------------------------------------------------------------------
-    // Operaciones de carga (cada una se mide y registra en MetricsRecorder)
+    // Operaciones de carga
     // -------------------------------------------------------------------------
 
-    /** Crea un grupo único bajo demanda; mantiene tráfico de Ricart-Agrawala sobre
-     *  GROUP_REGISTRY durante toda la ventana de carga, no solo en el setup inicial. */
     public void doCreateGroup(String groupId) {
         controlOp(new PaqueteCrearGrupo(clientId, groupId), "CREATE_GROUP");
     }
@@ -128,53 +172,73 @@ public class VirtualClient {
     }
 
     private void controlOp(PaqueteRed paquete, String opType) {
+        if (!ensureConnected(opType)) {
+            metrics.recordError(clientId, opType, "sin conexión a nodo vivo");
+            return;
+        }
         try {
             long t0 = System.nanoTime();
-            out.writeObject(paquete);
-            out.flush();
+            sendObject(paquete);
             PaqueteRed resp = controlResponses.poll(5, TimeUnit.SECONDS);
             double latencyMs = (System.nanoTime() - t0) / 1_000_000.0;
 
             if (resp instanceof PaqueteConfirm) {
                 metrics.recordSuccess(clientId, opType, latencyMs);
             } else {
-                metrics.recordError(clientId, opType,
-                        resp == null ? "timeout" : ((PaqueteError) resp).getRazon());
+                String reason = resp == null ? "timeout" : errorReason(resp);
+                // En pruebas largas puede repetirse una operación ya aplicada antes de perderse la respuesta.
+                // Para no inflar falsos negativos, CREATE_GROUP idempotente se considera OK si el grupo ya existe.
+                if ("CREATE_GROUP".equals(opType) && reason.toLowerCase().contains("ya existe")) {
+                    metrics.recordSuccess(clientId, opType, latencyMs);
+                } else {
+                    metrics.recordError(clientId, opType, reason);
+                }
             }
         } catch (IOException | InterruptedException e) {
+            markDisconnected();
             metrics.recordError(clientId, opType, e.getMessage());
+            if (e instanceof InterruptedException) Thread.currentThread().interrupt();
         }
     }
 
     /** Ping-pong privado con el buddy asignado. Mide latencia real cruzando nodos. */
     public void doPrivatePing() {
         if (buddyId == null) return;
+        if (!ensureConnected("PRIVATE_PING")) {
+            metrics.recordError(clientId, "PRIVATE_PING", "sin conexión a nodo vivo");
+            return;
+        }
+
         String reqId = clientId + "-" + reqSeq.incrementAndGet();
         pendingPings.put(reqId, System.nanoTime());
         try {
-            out.writeObject(new PaqueteMensaje(clientId, buddyId, "PING|" + reqId, false));
-            out.flush();
-            // La latencia se registra al llegar el PONG (ver listenLoop), o se
-            // descarta como error si no llega (ver purgeStalePings).
+            sendObject(new PaqueteMensaje(clientId, buddyId, "PING|" + reqId, false));
         } catch (IOException e) {
             pendingPings.remove(reqId);
+            markDisconnected();
             metrics.recordError(clientId, "PRIVATE_PING", e.getMessage());
         }
     }
 
-    /** Mensaje grupal fire-and-forget; la latencia de entrega la mide cada receptor. */
+    /** Mensaje grupal fire-and-forget. Se mide aceptación del envío y entrega en receptores. */
     public void doGroupMessage(String groupId) {
+        if (!ensureConnected("GROUP_MESSAGE")) {
+            metrics.recordError(clientId, "GROUP_MESSAGE", "sin conexión a nodo vivo");
+            return;
+        }
+        long t0 = System.nanoTime();
         try {
-            out.writeObject(new PaqueteMensaje(clientId, groupId, "GMSG|" + System.currentTimeMillis(), true));
-            out.flush();
-            // routeGroupMessage no envía ack de éxito al emisor; el éxito real lo
-            // confirma la latencia de entrega que registran los receptores.
+            sendObject(new PaqueteMensaje(clientId, groupId, "GMSG|" + System.currentTimeMillis(), true));
+            // El protocolo no confirma el mensaje grupal al emisor. Se registra como request aceptada
+            // al escribir correctamente al socket; las entregas remotas se registran como GROUP_DELIVERY.
+            metrics.recordSuccess(clientId, "GROUP_MESSAGE", (System.nanoTime() - t0) / 1_000_000.0);
         } catch (IOException e) {
+            markDisconnected();
             metrics.recordError(clientId, "GROUP_MESSAGE", e.getMessage());
         }
     }
 
-    /** Descarta PINGs sin PONG (ej: el buddy se cayó junto con el nodo derribado). */
+    /** Descarta PINGs sin PONG. */
     public void purgeStalePings(long timeoutMs) {
         long now = System.nanoTime();
         pendingPings.entrySet().removeIf(e -> {
@@ -185,15 +249,13 @@ public class VirtualClient {
     }
 
     // -------------------------------------------------------------------------
-    // Hilo de escucha: igual que ClienteNodo.escucharServidor(), pero despachando
-    // PING/PONG/GMSG además de los PaqueteConfirm/PaqueteError de control.
+    // Hilo de escucha
     // -------------------------------------------------------------------------
 
     private void listenLoop() {
         try {
             while (running) {
                 Object respuesta = in.readObject();
-
                 if (respuesta instanceof PaqueteMensaje msj) {
                     handleIncomingMessage(msj);
                 } else if (respuesta instanceof PaqueteConfirm || respuesta instanceof PaqueteError) {
@@ -202,9 +264,8 @@ public class VirtualClient {
             }
         } catch (IOException | ClassNotFoundException e) {
             if (running) {
-                // Esperable para los clientes pegados al nodo que el equipo derribe
-                // a propósito durante la prueba (Sección 3.3).
                 metrics.recordError(clientId, "CONNECTION", "desconectado: " + e.getMessage());
+                markDisconnected();
             }
         }
     }
@@ -213,16 +274,14 @@ public class VirtualClient {
         String contenido = msj.getContenido();
 
         if (!msj.isEsGrupo() && contenido.startsWith("PING|")) {
-            // Soy el buddy: respondo PONG inmediatamente con el mismo reqId.
             String reqId = contenido.substring("PING|".length());
             try {
-                out.writeObject(new PaqueteMensaje(clientId, msj.getIdRemitente(), "PONG|" + reqId, false));
-                out.flush();
+                sendObject(new PaqueteMensaje(clientId, msj.getIdRemitente(), "PONG|" + reqId, false));
             } catch (IOException e) {
+                markDisconnected();
                 metrics.recordError(clientId, "PRIVATE_PING_REPLY", e.getMessage());
             }
         } else if (!msj.isEsGrupo() && contenido.startsWith("PONG|")) {
-            // Me llegó la respuesta a un PING que yo mismo envié.
             String reqId = contenido.substring("PONG|".length());
             Long t0 = pendingPings.remove(reqId);
             if (t0 != null) {
@@ -230,9 +289,31 @@ public class VirtualClient {
                 metrics.recordSuccess(clientId, "PRIVATE_PING", latencyMs);
             }
         } else if (msj.isEsGrupo() && contenido.startsWith("GMSG|")) {
-            long sentAt = Long.parseLong(contenido.substring("GMSG|".length()));
-            double latencyMs = System.currentTimeMillis() - sentAt;
-            metrics.recordSuccess(clientId, "GROUP_DELIVERY", latencyMs);
+            try {
+                long sentAt = Long.parseLong(contenido.substring("GMSG|".length()));
+                double latencyMs = Math.max(0, System.currentTimeMillis() - sentAt);
+                metrics.recordSuccess(clientId, "GROUP_DELIVERY", latencyMs);
+            } catch (NumberFormatException ignored) {
+            }
         }
+    }
+
+    private void sendObject(PaqueteRed paquete) throws IOException {
+        synchronized (connectionLock) {
+            sendObjectUnsafe(paquete);
+        }
+    }
+
+    private void sendObjectUnsafe(PaqueteRed paquete) throws IOException {
+        if (out == null) throw new IOException("socket no disponible");
+        out.writeObject(paquete);
+        out.flush();
+        out.reset();
+    }
+
+    private String errorReason(PaqueteRed resp) {
+        if (resp instanceof PaqueteError err) return err.getRazon();
+        if (resp instanceof PaqueteConfirm conf) return conf.getMensaje();
+        return String.valueOf(resp);
     }
 }

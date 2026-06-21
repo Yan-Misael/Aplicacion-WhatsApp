@@ -1,0 +1,2059 @@
+[node2] Iniciando ServerNode
+[node2] clientPort=5002 peerPort=6002
+[node2] clientWorkerPool=64 peerWorkerPool=16 schedulerPool=4 coordinationExecutor=1
+[node2] Peers configurados:
+[node2]  - node1@localhost:5001:6001 [ALIVE]
+[node2]  - node3@localhost:5003:6003 [ALIVE]
+[node2][TcpPeerTransport] Iniciando TcpPeerTransport en puerto 6002
+[node2][PeerListener] PeerListener escuchando en puerto 6002
+[node2][PeerConnMgr] Enviando PEER_HELLO a node3 localhost:6003
+[node2][L=1   ] SEND     PEER_HELLO                   node2?node3
+[node2][PeerConnMgr] Enviando PEER_HELLO a node1 localhost:6001
+[node2][L=2   ] SEND     PEER_HELLO                   node2?node1
+[node2][TcpPeerTransport] TcpPeerTransport iniciado
+[node2] Emisor de Heartbeats programado cada 2000ms
+[node2] Sweeper de fallos programado. Tolerancia máxima: 6000ms
+[node2] ServerNode iniciado — Ricart-Agrawala y Bully activos.
+[node2] ClientListener escuchando en puerto 5002
+[node2][PeerConnMgr] Intento 1/3 fallido para node1: java.net.ConnectException: Connection refused: connect
+[node2][PeerConnMgr] PEER_HELLO enviado a node3
+[node2][L=5   ] RECEIVE  PEER_HELLO_ACK               node3?node2
+[node2][PeerConnMgr] PEER_HELLO_ACK recibido desde node3 L=5
+[node2][PeerConnMgr] Peer detectado: node3
+[node2][L=6   ] RECEIVE  PEER_HELLO                   node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=PEER_HELLO source=node1 L=1 ? local L=6
+[node2][PeerMessageHandler] PEER_HELLO recibido desde node1
+[node2][PeerMessageHandler] Peer registrado: node1@localhost:5001:6001 [ALIVE]
+[node2][L=7   ] SEND     PEER_HELLO_ACK               node2?node1
+[node2][PeerMessageHandler] PEER_HELLO_ACK enviado a node1 L=7
+[node2][L=8   ] RECEIVE  PEER_HELLO                   node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=PEER_HELLO source=node3 L=1 ? local L=8
+[node2][PeerMessageHandler] PEER_HELLO recibido desde node3
+[node2][PeerMessageHandler] Peer registrado: node3@localhost:5003:6003 [ALIVE]
+[node2][L=9   ] SEND     PEER_HELLO_ACK               node2?node3
+[node2][PeerMessageHandler] PEER_HELLO_ACK enviado a node3 L=9
+[node2][PeerConnMgr] PEER_HELLO enviado a node1
+[node2][L=13  ] RECEIVE  PEER_HELLO_ACK               node1?node2
+[node2][PeerConnMgr] PEER_HELLO_ACK recibido desde node1 L=13
+[node2][PeerConnMgr] Peer detectado: node1
+[node2][L=14  ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=12 ? local L=14
+[node2][L=15  ] SEND     HEARTBEAT                    node2?node3
+[node2][L=16  ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=15
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=16
+[node2][L=19  ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=18 ? local L=19
+[node2][L=22  ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=21 ? local L=22
+[node2][L=24  ] RECEIVE  ELECTION_COORDINATOR         node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=ELECTION_COORDINATOR source=node3 L=23 ? local L=24
+[node2][Bully] === COORDINADOR ELECTO: node3 ===
+[node2][L=25  ] SEND     HEARTBEAT                    node2?node3
+[node2][L=26  ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=25
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=26
+[node2][L=29  ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=28 ? local L=29
+[node2][L=32  ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=31 ? local L=32
+[node2][L=34  ] RECEIVE  MUTEX_REQUEST                node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=MUTEX_REQUEST source=node3 L=33 ? local L=34
+[node2][Ricart-Agrawala] REQUEST de node3 L=33 ? REPLY inmediato
+[node2][L=35  ] SEND     MUTEX_REPLY                  node2?node3
+[node2][PeerConnMgr] Mensaje enviado a node3 type=MUTEX_REPLY L=35
+[node2][L=36  ] SEND     HEARTBEAT                    node2?node3
+[node2][L=37  ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=36
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=37
+[node2] [DEMO R-A] Intentando crear grupo 'grupo-demo-ricart' con mutex distribuido...
+[node2][Ricart-Agrawala] ACQUIRE 'GROUP_REGISTRY': REQUEST L=38 ? [node3, node1]
+[node2][L=38  ] SEND     MUTEX_REQUEST                node2?node3
+[node2][L=38  ] SEND     MUTEX_REQUEST                node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=MUTEX_REQUEST L=38
+[node2][PeerConnMgr] Mensaje enviado a node1 type=MUTEX_REQUEST L=38
+[node2][L=41  ] RECEIVE  MUTEX_REPLY                  node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=MUTEX_REPLY source=node1 L=40 ? local L=41
+[node2][Ricart-Agrawala] REPLY de node1 — pendientes: [node3]
+[node2][L=42  ] RECEIVE  MUTEX_REPLY                  node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=MUTEX_REPLY source=node3 L=40 ? local L=42
+[node2][Ricart-Agrawala] REPLY de node3 — pendientes: []
+[node2][Ricart-Agrawala] HELD — todos los replies recibidos
+[node2][Ricart-Agrawala] RELEASED — respondiendo a 0 diferidos
+[node2] [DEMO R-A] Grupo 'grupo-demo-ricart' CREADO exitosamente por node2
+[node2][L=43  ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=41 ? local L=43
+[node2][L=44  ] RECEIVE  MUTEX_REQUEST                node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=MUTEX_REQUEST source=node1 L=43 ? local L=44
+[node2][Ricart-Agrawala] REQUEST de node1 L=43 ? REPLY inmediato
+[node2][L=45  ] SEND     MUTEX_REPLY                  node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=MUTEX_REPLY L=45
+[node2][L=47  ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=46 ? local L=47
+[node2][L=48  ] SEND     HEARTBEAT                    node2?node3
+[node2][L=49  ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=48
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=49
+[node2][L=52  ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=51 ? local L=52
+[node2][L=55  ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=54 ? local L=55
+[node2][L=56  ] SEND     HEARTBEAT                    node2?node3
+[node2][L=57  ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=56
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=57
+[node2][L=60  ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=59 ? local L=60
+[node2][L=63  ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=62 ? local L=63
+[node2][L=64  ] SEND     HEARTBEAT                    node2?node3
+[node2][L=65  ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=64
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=65
+[node2][L=68  ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=67 ? local L=68
+[node2][L=71  ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=70 ? local L=71
+[node2][L=72  ] SEND     HEARTBEAT                    node2?node3
+[node2][L=73  ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=72
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=73
+[node2][L=76  ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=75 ? local L=76
+[node2][L=79  ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=78 ? local L=79
+[node2][L=80  ] SEND     HEARTBEAT                    node2?node3
+[node2][L=81  ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=80
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=81
+[node2][L=84  ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=83 ? local L=84
+[node2][L=87  ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=86 ? local L=87
+[node2][L=88  ] SEND     HEARTBEAT                    node2?node3
+[node2][L=89  ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=88
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=89
+[node2][L=92  ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=91 ? local L=92
+[node2][L=95  ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=94 ? local L=95
+[node2][L=96  ] SEND     HEARTBEAT                    node2?node3
+[node2][L=97  ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=96
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=97
+[node2][L=100 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=99 ? local L=100
+[node2][L=103 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=102 ? local L=103
+[node2][L=104 ] SEND     HEARTBEAT                    node2?node3
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=104
+[node2][L=105 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=105
+[node2][L=108 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=107 ? local L=108
+[node2][L=111 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=110 ? local L=111
+[node2][L=112 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=113 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=112
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=113
+[node2][L=116 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=115 ? local L=116
+[node2][L=119 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=118 ? local L=119
+[node2][L=120 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=121 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=121
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=120
+[node2][L=124 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=123 ? local L=124
+[node2][L=127 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=126 ? local L=127
+[node2][L=128 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=129 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=128
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=129
+[node2][L=132 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=131 ? local L=132
+[node2][L=135 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=134 ? local L=135
+[node2][L=136 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=137 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=137
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=136
+[node2][L=140 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=139 ? local L=140
+[node2][L=143 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=142 ? local L=143
+[node2][L=144 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=145 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=145
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=144
+[node2][L=148 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=147 ? local L=148
+[node2][L=151 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=150 ? local L=151
+[node2][L=152 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=153 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=152
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=153
+[node2][L=156 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=155 ? local L=156
+[node2][L=159 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=158 ? local L=159
+[node2][L=160 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=161 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=161
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=160
+[node2][L=164 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=163 ? local L=164
+[node2][L=167 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=166 ? local L=167
+[node2][L=168 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=169 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=168
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=169
+[node2][L=172 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=171 ? local L=172
+[node2][L=175 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=174 ? local L=175
+[node2][L=176 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=177 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=177
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=176
+[node2][L=180 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=179 ? local L=180
+[node2][L=183 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=182 ? local L=183
+[node2][L=184 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=185 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=184
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=185
+[node2][L=188 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=187 ? local L=188
+[node2][L=191 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=190 ? local L=191
+[node2][L=192 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=193 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=192
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=193
+[node2][L=196 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=195 ? local L=196
+[node2][L=199 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=198 ? local L=199
+[node2][L=200 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=201 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=201
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=200
+[node2][L=204 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=203 ? local L=204
+[node2][L=207 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=206 ? local L=207
+[node2][L=208 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=209 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=208
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=209
+[node2][L=212 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=211 ? local L=212
+[node2][L=215 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=214 ? local L=215
+[node2][L=216 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=217 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=217
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=216
+[node2][L=220 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=219 ? local L=220
+[node2][L=223 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=222 ? local L=223
+[node2][L=224 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=225 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=224
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=225
+[node2][L=228 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=227 ? local L=228
+[node2][L=231 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=230 ? local L=231
+[node2][L=232 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=233 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=232
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=233
+[node2][L=236 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=235 ? local L=236
+[node2][L=239 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=238 ? local L=239
+[node2][L=240 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=241 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=240
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=241
+[node2][L=244 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=243 ? local L=244
+[node2][L=247 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=246 ? local L=247
+[node2][L=248 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=249 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=248
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=249
+[node2][L=252 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=251 ? local L=252
+[node2][L=255 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=254 ? local L=255
+[node2][L=256 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=257 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=256
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=257
+[node2][L=260 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=259 ? local L=260
+[node2][L=263 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=262 ? local L=263
+[node2][L=264 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=265 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=264
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=265
+[node2][L=268 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=267 ? local L=268
+[node2][L=271 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=270 ? local L=271
+[node2][L=272 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=273 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=273
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=272
+[node2][L=276 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=275 ? local L=276
+[node2][L=279 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=278 ? local L=279
+[node2][L=280 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=281 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=281
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=280
+[node2][L=284 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=283 ? local L=284
+[node2][L=287 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=286 ? local L=287
+[node2][L=288 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=289 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=288
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=289
+[node2][L=292 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=291 ? local L=292
+[node2][L=295 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=294 ? local L=295
+[node2][L=296 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=297 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=296
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=297
+[node2][L=300 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=299 ? local L=300
+[node2][L=303 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=302 ? local L=303
+[node2][L=304 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=305 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=304
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=305
+[node2][L=308 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=307 ? local L=308
+[node2][L=311 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=310 ? local L=311
+[node2][L=312 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=313 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=312
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=313
+[node2][L=316 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=315 ? local L=316
+[node2][L=319 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=318 ? local L=319
+[node2][L=320 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=321 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=321
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=320
+[node2][L=324 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=323 ? local L=324
+[node2][L=327 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=326 ? local L=327
+[node2][L=328 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=329 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=328
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=329
+[node2][L=332 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=331 ? local L=332
+[node2][L=335 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=334 ? local L=335
+[node2][L=336 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=337 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=337
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=336
+[node2][L=340 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=339 ? local L=340
+[node2][L=343 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=342 ? local L=343
+[node2][L=344 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=345 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=345
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=344
+[node2][L=348 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=347 ? local L=348
+[node2][L=351 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=350 ? local L=351
+[node2][L=352 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=353 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=353
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=352
+[node2][L=356 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=355 ? local L=356
+[node2][L=359 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=358 ? local L=359
+[node2][L=360 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=361 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=361
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=360
+[node2][L=364 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=363 ? local L=364
+[node2][L=367 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=366 ? local L=367
+[node2][L=368 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=369 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=369
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=368
+[node2][L=372 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=371 ? local L=372
+[node2][L=375 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=374 ? local L=375
+[node2][L=376 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=377 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=377
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=376
+[node2][L=380 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=379 ? local L=380
+[node2][L=383 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=382 ? local L=383
+[node2][L=384 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=385 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=385
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=384
+[node2][L=388 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=387 ? local L=388
+[node2][L=391 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=390 ? local L=391
+[node2][L=392 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=393 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=393
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=392
+[node2][L=396 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=395 ? local L=396
+[node2] Nueva conexión de cliente desde: /127.0.0.1
+[node2][L=399 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=398 ? local L=399
+[node2][L=400 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=401 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=400
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=401
+[node2][L=404 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=403 ? local L=404
+[node2][L=407 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=406 ? local L=407
+[node2][L=408 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=409 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=408
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=409
+[node2][L=412 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=411 ? local L=412
+[node2][L=415 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=414 ? local L=415
+[node2][L=416 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=417 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=417
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=416
+[node2][L=420 ] RECEIVE  USER_LOGIN_ANNOUNCE          node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=USER_LOGIN_ANNOUNCE source=node1 L=419 ? local L=420
+[node2][PeerMessageHandler] Usuario usuarioA registrado remoto en nodo node1
+[node2][L=421 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=420 ? local L=421
+[node2][L=424 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=423 ? local L=424
+[node2][L=425 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=426 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=425
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=426
+[node2][L=429 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=428 ? local L=429
+[node2][L=430 ] LOCAL    LOGIN                        usuarioB@node2
+Usuario usuarioB autenticado en node2 L=430
+[node2][PeerConnMgr] Mensaje enviado a node3 type=USER_LOGIN_ANNOUNCE L=430
+[node2][PeerConnMgr] Mensaje enviado a node1 type=USER_LOGIN_ANNOUNCE L=430
+[node2][L=433 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=432 ? local L=433
+[node2][L=434 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=435 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=435
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=434
+[node2][L=438 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=437 ? local L=438
+[node2][L=441 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=440 ? local L=441
+[node2][L=443 ] RECEIVE  USER_LOGIN_ANNOUNCE          node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=USER_LOGIN_ANNOUNCE source=node3 L=442 ? local L=443
+[node2][PeerMessageHandler] Usuario usuarioC registrado remoto en nodo node3
+[node2][L=444 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=445 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=445
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=444
+[node2][L=448 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=447 ? local L=448
+[node2][L=451 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=450 ? local L=451
+[node2][L=452 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=453 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=453
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=452
+[node2][L=456 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=455 ? local L=456
+[node2][L=459 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=458 ? local L=459
+[node2][L=460 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=461 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=460
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=461
+[node2][L=464 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=463 ? local L=464
+[node2][L=467 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=466 ? local L=467
+[node2][L=468 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=469 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=468
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=469
+[node2][L=472 ] RECEIVE  APP                          node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=APP source=node1 L=471 ? local L=472
+[node2][PeerMessageHandler] Mensaje privado entregado localmente a usuarioB
+[node2][L=473 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=472 ? local L=473
+[node2][L=476 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=475 ? local L=476
+[node2][L=477 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=478 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=477
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=478
+[node2][L=481 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=480 ? local L=481
+[node2][L=484 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=483 ? local L=484
+[node2][L=485 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=486 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=485
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=486
+[node2][L=489 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=488 ? local L=489
+[node2][L=492 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=491 ? local L=492
+[node2][L=493 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=494 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=494
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=493
+[node2][L=497 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=496 ? local L=497
+[node2][L=500 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=499 ? local L=500
+[node2][L=501 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=502 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=501
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=502
+[node2][L=505 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=504 ? local L=505
+[node2][L=508 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=507 ? local L=508
+[node2][L=509 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=510 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=509
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=510
+[node2][Ricart-Agrawala] ACQUIRE 'GROUP_REGISTRY': REQUEST L=511 ? [node3, node1]
+[node2][L=511 ] SEND     MUTEX_REQUEST                node2?node3
+[node2][L=511 ] SEND     MUTEX_REQUEST                node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=MUTEX_REQUEST L=511
+[node2][PeerConnMgr] Mensaje enviado a node3 type=MUTEX_REQUEST L=511
+[node2][L=514 ] RECEIVE  MUTEX_REPLY                  node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=MUTEX_REPLY source=node1 L=513 ? local L=514
+[node2][Ricart-Agrawala] REPLY de node1 — pendientes: [node3]
+[node2][L=515 ] RECEIVE  MUTEX_REPLY                  node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=MUTEX_REPLY source=node3 L=513 ? local L=515
+[node2][Ricart-Agrawala] REPLY de node3 — pendientes: []
+[node2][Ricart-Agrawala] HELD — todos los replies recibidos
+[node2][Ricart-Agrawala] RELEASED — respondiendo a 0 diferidos
+[node2][L=516 ] SEND     APP_CREATE_GROUP             node2?*
+[Router] Grupo grupo1 creado y difundido. L=516
+[node2][PeerConnMgr] Mensaje enviado a node1 type=APP L=516
+[node2][PeerConnMgr] Mensaje enviado a node3 type=APP L=516
+[node2][L=519 ] RECEIVE  MUTEX_REQUEST                node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=MUTEX_REQUEST source=node1 L=518 ? local L=519
+[node2][Ricart-Agrawala] REQUEST de node1 L=518 ? REPLY inmediato
+[node2][L=520 ] SEND     MUTEX_REPLY                  node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=MUTEX_REPLY L=520
+[node2][L=521 ] RECEIVE  MUTEX_REQUEST                node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=MUTEX_REQUEST source=node3 L=518 ? local L=521
+[node2][Ricart-Agrawala] REQUEST de node3 L=518 ? REPLY inmediato
+[node2][L=522 ] SEND     MUTEX_REPLY                  node2?node3
+[node2][PeerConnMgr] Mensaje enviado a node3 type=MUTEX_REPLY L=522
+[node2][L=526 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=525 ? local L=526
+[node2][L=529 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=528 ? local L=529
+[node2][L=530 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=531 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=531
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=530
+[node2][L=534 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=533 ? local L=534
+[node2][L=537 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=536 ? local L=537
+[node2][L=538 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=539 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=539
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=538
+[node2][L=542 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=541 ? local L=542
+[node2][L=545 ] RECEIVE  MUTEX_REQUEST                node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=MUTEX_REQUEST source=node3 L=544 ? local L=545
+[node2][Ricart-Agrawala] REQUEST de node3 L=544 ? REPLY inmediato
+[node2][L=546 ] SEND     MUTEX_REPLY                  node2?node3
+[node2][PeerConnMgr] Mensaje enviado a node3 type=MUTEX_REPLY L=546
+[node2][L=550 ] RECEIVE  APP                          node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=APP source=node3 L=549 ? local L=550
+[node2][Ricart-Agrawala] ACQUIRE 'GROUP_REGISTRY': REQUEST L=551 ? [node3, node1]
+[node2][L=551 ] SEND     MUTEX_REQUEST                node2?node3
+[node2][L=551 ] SEND     MUTEX_REQUEST                node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=MUTEX_REQUEST L=551
+[node2][PeerConnMgr] Mensaje enviado a node1 type=MUTEX_REQUEST L=551
+[node2][L=552 ] RECEIVE  MUTEX_REQUEST                node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=MUTEX_REQUEST source=node1 L=551 ? local L=552
+[node2][Ricart-Agrawala] REQUEST de node1 L=551 ? REPLY inmediato
+[node2][L=553 ] SEND     MUTEX_REPLY                  node2?node1
+[node2][L=554 ] RECEIVE  MUTEX_REPLY                  node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=MUTEX_REPLY source=node3 L=553 ? local L=554
+[node2][Ricart-Agrawala] REPLY de node3 — pendientes: [node1]
+[node2][PeerConnMgr] Mensaje enviado a node1 type=MUTEX_REPLY L=553
+[node2][L=559 ] RECEIVE  MUTEX_REPLY                  node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=MUTEX_REPLY source=node1 L=558 ? local L=559
+[node2][Ricart-Agrawala] REPLY de node1 — pendientes: []
+[node2][Ricart-Agrawala] HELD — todos los replies recibidos
+[node2][Ricart-Agrawala] RELEASED — respondiendo a 0 diferidos
+[node2][PeerMessageHandler] Usuario usuarioC se unió al grupo grupo1 (desde otro nodo)
+[node2][L=560 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=556 ? local L=560
+[node2][L=561 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=562 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=561
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=562
+[node2][L=565 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=564 ? local L=565
+[node2][L=567 ] RECEIVE  MUTEX_REQUEST                node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=MUTEX_REQUEST source=node1 L=566 ? local L=567
+[node2][Ricart-Agrawala] REQUEST de node1 L=566 ? REPLY inmediato
+[node2][L=568 ] SEND     MUTEX_REPLY                  node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=MUTEX_REPLY L=568
+[node2][L=572 ] RECEIVE  APP                          node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=APP source=node1 L=571 ? local L=572
+[node2][Ricart-Agrawala] ACQUIRE 'GROUP_REGISTRY': REQUEST L=573 ? [node3, node1]
+[node2][L=573 ] SEND     MUTEX_REQUEST                node2?node3
+[node2][L=573 ] SEND     MUTEX_REQUEST                node2?node1
+[node2][L=574 ] RECEIVE  MUTEX_REQUEST                node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=MUTEX_REQUEST source=node3 L=573 ? local L=574
+[node2][Ricart-Agrawala] REQUEST de node3 L=573 ? DEFERIDO (estado=WANTED)
+[node2][PeerConnMgr] Mensaje enviado a node3 type=MUTEX_REQUEST L=573
+[node2][PeerConnMgr] Mensaje enviado a node1 type=MUTEX_REQUEST L=573
+[node2][L=576 ] RECEIVE  MUTEX_REPLY                  node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=MUTEX_REPLY source=node3 L=575 ? local L=576
+[node2][Ricart-Agrawala] REPLY de node3 — pendientes: [node1]
+[node2][L=578 ] RECEIVE  MUTEX_REPLY                  node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=MUTEX_REPLY source=node1 L=577 ? local L=578
+[node2][Ricart-Agrawala] REPLY de node1 — pendientes: []
+[node2][Ricart-Agrawala] HELD — todos los replies recibidos
+[node2][Ricart-Agrawala] RELEASED — respondiendo a 1 diferidos
+[node2][L=579 ] SEND     MUTEX_REPLY                  node2?node3
+[node2][PeerMessageHandler] Usuario usuarioA se unió al grupo grupo1 (desde otro nodo)
+[node2][PeerConnMgr] Mensaje enviado a node3 type=MUTEX_REPLY L=579
+[node2][L=582 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=581 ? local L=582
+[node2][L=583 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=584 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=583
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=584
+[node2][L=587 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=586 ? local L=587
+[node2][L=590 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=589 ? local L=590
+[node2][L=591 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=592 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=592
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=591
+[node2][L=595 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=594 ? local L=595
+[node2][L=598 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=597 ? local L=598
+[node2][L=599 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=600 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=600
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=599
+[node2][L=603 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=602 ? local L=603
+[node2][L=606 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=605 ? local L=606
+[node2][L=607 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=608 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=607
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=608
+[node2][L=611 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=610 ? local L=611
+[node2][L=614 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=613 ? local L=614
+[node2][L=615 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=616 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=616
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=615
+[node2][L=619 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=618 ? local L=619
+[node2][L=622 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=621 ? local L=622
+[node2][L=623 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=624 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=623
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=624
+[node2][L=627 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=626 ? local L=627
+[node2][L=630 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=629 ? local L=630
+[node2][L=631 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=632 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=631
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=632
+[node2][L=635 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=634 ? local L=635
+[node2][L=638 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=637 ? local L=638
+[node2][L=639 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=640 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=640
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=639
+[node2][L=643 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=642 ? local L=643
+[node2][L=646 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=645 ? local L=646
+[node2][L=647 ] SEND     HEARTBEAT                    node2?node3
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=647
+[node2][L=648 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=648
+[node2][L=651 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=650 ? local L=651
+[node2][L=654 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=653 ? local L=654
+[node2][L=655 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=656 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=655
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=656
+[node2][L=659 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=658 ? local L=659
+[node2][L=662 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=661 ? local L=662
+[node2][L=663 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=664 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=664
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=663
+[node2][L=667 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=666 ? local L=667
+[node2][L=670 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=669 ? local L=670
+[node2][L=671 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=672 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=671
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=672
+[node2][L=675 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=674 ? local L=675
+[node2][L=678 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=677 ? local L=678
+[node2][L=679 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=680 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=680
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=679
+[node2][L=683 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=682 ? local L=683
+[node2][L=686 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=685 ? local L=686
+[node2][L=687 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=688 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=688
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=687
+[node2][L=691 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=690 ? local L=691
+[node2][L=694 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=693 ? local L=694
+[node2][L=695 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=696 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=696
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=695
+[node2][L=699 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=698 ? local L=699
+[node2][L=702 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=701 ? local L=702
+[node2][L=703 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=704 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=703
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=704
+[node2][L=707 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=706 ? local L=707
+[node2][L=710 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=709 ? local L=710
+[node2][L=711 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=712 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=712
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=711
+[node2][L=715 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=714 ? local L=715
+[node2][L=718 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=717 ? local L=718
+[node2][L=719 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=720 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=720
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=719
+[node2][L=723 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=722 ? local L=723
+[node2][L=726 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=725 ? local L=726
+[node2][L=727 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=728 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=727
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=728
+[node2][L=731 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=730 ? local L=731
+[node2][L=734 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=733 ? local L=734
+[node2][L=735 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=736 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=736
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=735
+[node2][L=739 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=738 ? local L=739
+[node2][L=742 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=741 ? local L=742
+[node2][L=743 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=744 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=743
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=744
+[node2][L=747 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=746 ? local L=747
+[node2][L=750 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=749 ? local L=750
+[node2][L=751 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=752 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=752
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=751
+[node2][L=755 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=754 ? local L=755
+[node2][L=758 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=757 ? local L=758
+[node2][L=759 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=760 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=759
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=760
+[node2][L=763 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=762 ? local L=763
+[node2][L=766 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=765 ? local L=766
+[node2][L=767 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=768 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=767
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=768
+[node2][L=771 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=770 ? local L=771
+[node2][L=774 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=773 ? local L=774
+[node2][L=775 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=776 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=775
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=776
+[node2][L=779 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=778 ? local L=779
+[node2][L=782 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=781 ? local L=782
+[node2][L=783 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=784 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=784
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=783
+[node2][L=787 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=786 ? local L=787
+[node2][L=790 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=789 ? local L=790
+[node2][L=791 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=792 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=792
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=791
+[node2][L=795 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=794 ? local L=795
+[node2][L=798 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=797 ? local L=798
+[node2][L=799 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=800 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=799
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=800
+[node2][L=803 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=802 ? local L=803
+[node2][L=806 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=805 ? local L=806
+[node2][L=807 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=808 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=808
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=807
+[node2][L=811 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=810 ? local L=811
+[node2][L=814 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=813 ? local L=814
+[node2][L=815 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=816 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=815
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=816
+[node2][L=819 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=818 ? local L=819
+[node2][L=822 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=821 ? local L=822
+[node2][L=823 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=824 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=823
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=824
+[node2][L=827 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=826 ? local L=827
+[node2][L=830 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=829 ? local L=830
+[node2][L=831 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=832 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=831
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=832
+[node2][L=835 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=834 ? local L=835
+[node2][L=838 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=837 ? local L=838
+[node2][L=839 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=840 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=840
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=839
+[node2][L=843 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=842 ? local L=843
+[node2][L=846 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=845 ? local L=846
+[node2][L=847 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=848 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=848
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=847
+[node2][L=851 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=850 ? local L=851
+[node2][L=854 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=853 ? local L=854
+[node2][L=855 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=856 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=855
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=856
+[node2][L=859 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=858 ? local L=859
+[node2][L=862 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=861 ? local L=862
+[node2][L=863 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=864 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=863
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=864
+[node2][L=867 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=866 ? local L=867
+[node2][L=870 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=869 ? local L=870
+[node2][L=871 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=872 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=872
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=871
+[node2][L=875 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=874 ? local L=875
+[node2][L=878 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=877 ? local L=878
+[node2][L=879 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=880 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=879
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=880
+[node2][L=883 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=882 ? local L=883
+[node2][L=886 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=885 ? local L=886
+[node2][L=887 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=888 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=887
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=888
+[node2][L=891 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=890 ? local L=891
+[node2][L=894 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=893 ? local L=894
+[node2][L=895 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=896 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=896
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=895
+[node2][L=899 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=898 ? local L=899
+[node2][L=902 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=901 ? local L=902
+[node2][L=903 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=904 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=903
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=904
+[node2][L=907 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=906 ? local L=907
+[node2][L=910 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=909 ? local L=910
+[node2][L=911 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=912 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=911
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=912
+[node2][L=915 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=914 ? local L=915
+[node2][L=918 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=917 ? local L=918
+[node2][L=919 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=920 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=920
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=919
+[node2][L=923 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=922 ? local L=923
+[node2][L=926 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=925 ? local L=926
+[node2][L=927 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=928 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=928
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=927
+[node2][L=931 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=930 ? local L=931
+[node2][L=934 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=933 ? local L=934
+[node2][L=935 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=936 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=935
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=936
+[node2][L=939 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=938 ? local L=939
+[node2][L=942 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=941 ? local L=942
+[node2][L=943 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=944 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=944
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=943
+[node2][L=947 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=946 ? local L=947
+[node2][L=950 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=949 ? local L=950
+[node2][L=951 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=952 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=952
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=951
+[node2][L=955 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=954 ? local L=955
+[node2][L=958 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=957 ? local L=958
+[node2][L=959 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=960 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=960
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=959
+[node2][L=963 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=962 ? local L=963
+[node2][L=966 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=965 ? local L=966
+[node2][L=967 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=968 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=967
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=968
+[node2][L=971 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=970 ? local L=971
+[node2][L=974 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=973 ? local L=974
+[node2][L=975 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=976 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=976
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=975
+[node2][L=979 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=978 ? local L=979
+[node2][L=982 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=981 ? local L=982
+[node2][L=983 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=984 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=984
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=983
+[node2][L=987 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=986 ? local L=987
+[node2][L=990 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=989 ? local L=990
+[node2][L=991 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=992 ] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=991
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=992
+[node2][L=995 ] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=994 ? local L=995
+[node2][L=998 ] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=997 ? local L=998
+[node2][L=999 ] SEND     HEARTBEAT                    node2?node3
+[node2][L=1000] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=999
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1000
+[node2][L=1003] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1002 ? local L=1003
+[node2][L=1006] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1005 ? local L=1006
+[node2][L=1007] SEND     HEARTBEAT                    node2?node3
+[node2][L=1008] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1008
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1007
+[node2][L=1011] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1010 ? local L=1011
+[node2][L=1014] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1013 ? local L=1014
+[node2][L=1015] SEND     HEARTBEAT                    node2?node3
+[node2][L=1016] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1016
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1015
+[node2][L=1019] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1018 ? local L=1019
+[node2][L=1022] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1021 ? local L=1022
+[node2][L=1023] SEND     HEARTBEAT                    node2?node3
+[node2][L=1024] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1024
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1023
+[node2][L=1027] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1026 ? local L=1027
+[node2][L=1030] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1029 ? local L=1030
+[node2][L=1031] SEND     HEARTBEAT                    node2?node3
+[node2][L=1032] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1031
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1032
+[node2][L=1035] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1034 ? local L=1035
+[node2][L=1038] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1037 ? local L=1038
+[node2][L=1039] SEND     HEARTBEAT                    node2?node3
+[node2][L=1040] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1039
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1040
+[node2][L=1043] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1042 ? local L=1043
+[node2][L=1046] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1045 ? local L=1046
+[node2][L=1047] SEND     HEARTBEAT                    node2?node3
+[node2][L=1048] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1047
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1048
+[node2][L=1051] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1050 ? local L=1051
+[node2][L=1054] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1053 ? local L=1054
+[node2][L=1055] SEND     HEARTBEAT                    node2?node3
+[node2][L=1056] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1056
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1055
+[node2][L=1059] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1058 ? local L=1059
+[node2][L=1062] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1061 ? local L=1062
+[node2][L=1063] SEND     HEARTBEAT                    node2?node3
+[node2][L=1064] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1063
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1064
+[node2][L=1067] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1066 ? local L=1067
+[node2][L=1070] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1069 ? local L=1070
+[node2][L=1071] SEND     HEARTBEAT                    node2?node3
+[node2][L=1072] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1071
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1072
+[node2][L=1075] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1074 ? local L=1075
+[node2][L=1078] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1077 ? local L=1078
+[node2][L=1079] SEND     HEARTBEAT                    node2?node3
+[node2][L=1080] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1080
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1079
+[node2][L=1083] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1082 ? local L=1083
+[node2][L=1086] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1085 ? local L=1086
+[node2][L=1087] SEND     HEARTBEAT                    node2?node3
+[node2][L=1088] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1087
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1088
+[node2][L=1091] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1090 ? local L=1091
+[node2][L=1094] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1093 ? local L=1094
+[node2][L=1095] SEND     HEARTBEAT                    node2?node3
+[node2][L=1096] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1096
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1095
+[node2][L=1099] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1098 ? local L=1099
+[node2][L=1102] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1101 ? local L=1102
+[node2][L=1103] SEND     HEARTBEAT                    node2?node3
+[node2][L=1104] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1104
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1103
+[node2][L=1107] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1106 ? local L=1107
+[node2][L=1110] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1109 ? local L=1110
+[node2][L=1111] SEND     HEARTBEAT                    node2?node3
+[node2][L=1112] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1112
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1111
+[node2][L=1115] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1114 ? local L=1115
+[node2][L=1118] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1117 ? local L=1118
+[node2][L=1119] SEND     HEARTBEAT                    node2?node3
+[node2][L=1120] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1119
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1120
+[node2][L=1123] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1122 ? local L=1123
+[node2][L=1126] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1125 ? local L=1126
+[node2][L=1127] SEND     HEARTBEAT                    node2?node3
+[node2][L=1128] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1128
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1127
+[node2][L=1131] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1130 ? local L=1131
+[node2][L=1134] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1133 ? local L=1134
+[node2][L=1135] SEND     HEARTBEAT                    node2?node3
+[node2][L=1136] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1135
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1136
+[node2][L=1139] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1138 ? local L=1139
+[node2][L=1142] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1141 ? local L=1142
+[node2][L=1143] SEND     HEARTBEAT                    node2?node3
+[node2][L=1144] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1143
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1144
+[node2][L=1147] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1146 ? local L=1147
+[node2][L=1150] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1149 ? local L=1150
+[node2][L=1151] SEND     HEARTBEAT                    node2?node3
+[node2][L=1152] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1152
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1151
+[node2][L=1155] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1154 ? local L=1155
+[node2][L=1158] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1157 ? local L=1158
+[node2][L=1159] SEND     HEARTBEAT                    node2?node3
+[node2][L=1160] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1159
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1160
+[node2][L=1163] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1162 ? local L=1163
+[node2][L=1166] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1165 ? local L=1166
+[node2][L=1167] SEND     HEARTBEAT                    node2?node3
+[node2][L=1168] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1167
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1168
+[node2][L=1171] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1170 ? local L=1171
+[node2][L=1174] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1173 ? local L=1174
+[node2][L=1175] SEND     HEARTBEAT                    node2?node3
+[node2][L=1176] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1176
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1175
+[node2][L=1179] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1178 ? local L=1179
+[node2][L=1182] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1181 ? local L=1182
+[node2][L=1183] SEND     HEARTBEAT                    node2?node3
+[node2][L=1184] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1184
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1183
+[node2][L=1187] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1186 ? local L=1187
+[node2][L=1190] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1189 ? local L=1190
+[node2][L=1191] SEND     HEARTBEAT                    node2?node3
+[node2][L=1192] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1191
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1192
+[node2][L=1195] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1194 ? local L=1195
+[node2][L=1198] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1197 ? local L=1198
+[node2][L=1199] SEND     HEARTBEAT                    node2?node3
+[node2][L=1200] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1199
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1200
+[node2][L=1203] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1202 ? local L=1203
+[node2][L=1206] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1205 ? local L=1206
+[node2][L=1207] SEND     HEARTBEAT                    node2?node3
+[node2][L=1208] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1207
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1208
+[node2][L=1211] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1210 ? local L=1211
+[node2][L=1214] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1213 ? local L=1214
+[node2][L=1215] SEND     HEARTBEAT                    node2?node3
+[node2][L=1216] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1216
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1215
+[node2][L=1219] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1218 ? local L=1219
+[node2][L=1222] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1221 ? local L=1222
+[node2][L=1223] SEND     HEARTBEAT                    node2?node3
+[node2][L=1224] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1223
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1224
+[node2][L=1227] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1226 ? local L=1227
+[node2][L=1230] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1229 ? local L=1230
+[node2][L=1231] SEND     HEARTBEAT                    node2?node3
+[node2][L=1232] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1231
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1232
+[node2][L=1235] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1234 ? local L=1235
+[node2][L=1238] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1237 ? local L=1238
+[node2][L=1239] SEND     HEARTBEAT                    node2?node3
+[node2][L=1240] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1239
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1240
+[node2][L=1243] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1242 ? local L=1243
+[node2][L=1246] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1245 ? local L=1246
+[node2][L=1247] SEND     HEARTBEAT                    node2?node3
+[node2][L=1248] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1248
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1247
+[node2][L=1251] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1250 ? local L=1251
+[node2][L=1254] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1253 ? local L=1254
+[node2][L=1255] SEND     HEARTBEAT                    node2?node3
+[node2][L=1256] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1255
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1256
+[node2][L=1259] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1258 ? local L=1259
+[node2][L=1262] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1261 ? local L=1262
+[node2][L=1263] SEND     HEARTBEAT                    node2?node3
+[node2][L=1264] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1263
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1264
+[node2][L=1267] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1266 ? local L=1267
+[node2][L=1270] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1269 ? local L=1270
+[node2][L=1271] SEND     HEARTBEAT                    node2?node3
+[node2][L=1272] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1271
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1272
+[node2][L=1275] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1274 ? local L=1275
+[node2][L=1278] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1277 ? local L=1278
+[node2][L=1279] SEND     HEARTBEAT                    node2?node3
+[node2][L=1280] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1280
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1279
+[node2][L=1283] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1282 ? local L=1283
+[node2][L=1286] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1285 ? local L=1286
+[node2][L=1287] SEND     HEARTBEAT                    node2?node3
+[node2][L=1288] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1287
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1288
+[node2][L=1291] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1290 ? local L=1291
+[node2][L=1294] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1293 ? local L=1294
+[node2][L=1295] SEND     HEARTBEAT                    node2?node3
+[node2][L=1296] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1295
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1296
+[node2][L=1299] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1298 ? local L=1299
+[node2][L=1302] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1301 ? local L=1302
+[node2][L=1303] SEND     HEARTBEAT                    node2?node3
+[node2][L=1304] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1304
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1303
+[node2][L=1307] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1306 ? local L=1307
+[node2][L=1310] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1309 ? local L=1310
+[node2][L=1311] SEND     HEARTBEAT                    node2?node3
+[node2][L=1312] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1311
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1312
+[node2][L=1315] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1314 ? local L=1315
+[node2][L=1318] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1317 ? local L=1318
+[node2][L=1319] SEND     HEARTBEAT                    node2?node3
+[node2][L=1320] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1319
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1320
+[node2][L=1323] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1322 ? local L=1323
+[node2][L=1326] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1325 ? local L=1326
+[node2][L=1327] SEND     HEARTBEAT                    node2?node3
+[node2][L=1328] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1327
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1328
+[node2][L=1331] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1330 ? local L=1331
+[node2][L=1334] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1333 ? local L=1334
+[node2][L=1335] SEND     HEARTBEAT                    node2?node3
+[node2][L=1336] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1335
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1336
+[node2][L=1339] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1338 ? local L=1339
+[node2][L=1342] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1341 ? local L=1342
+[node2][L=1343] SEND     HEARTBEAT                    node2?node3
+[node2][L=1344] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1343
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1344
+[node2][L=1347] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1346 ? local L=1347
+[node2][L=1350] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1349 ? local L=1350
+[node2][L=1351] SEND     HEARTBEAT                    node2?node3
+[node2][L=1352] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1351
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1352
+[node2][L=1355] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1354 ? local L=1355
+[node2][L=1358] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1357 ? local L=1358
+[node2][L=1359] SEND     HEARTBEAT                    node2?node3
+[node2][L=1360] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1359
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1360
+[node2][L=1363] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1362 ? local L=1363
+[node2][L=1366] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1365 ? local L=1366
+[node2][L=1367] SEND     HEARTBEAT                    node2?node3
+[node2][L=1368] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1367
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1368
+[node2][L=1371] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1370 ? local L=1371
+[node2][L=1374] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1373 ? local L=1374
+[node2][L=1375] SEND     HEARTBEAT                    node2?node3
+[node2][L=1376] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1376
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1375
+[node2][L=1379] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1378 ? local L=1379
+[node2][L=1382] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1381 ? local L=1382
+[node2][L=1383] SEND     HEARTBEAT                    node2?node3
+[node2][L=1384] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1383
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1384
+[node2][L=1387] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1386 ? local L=1387
+[node2][L=1390] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1389 ? local L=1390
+[node2][L=1391] SEND     HEARTBEAT                    node2?node3
+[node2][L=1392] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1391
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1392
+[node2][L=1395] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1394 ? local L=1395
+[node2][L=1398] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1397 ? local L=1398
+[node2][L=1399] SEND     HEARTBEAT                    node2?node3
+[node2][L=1400] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1399
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1400
+[node2][L=1403] RECEIVE  APP                          node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=APP source=node1 L=1402 ? local L=1403
+[node2][PeerMessageHandler] Mensaje grupal entregado localmente a usuarioB
+[node2][L=1404] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1403 ? local L=1404
+[node2][L=1407] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1406 ? local L=1407
+[node2][L=1408] SEND     HEARTBEAT                    node2?node3
+[node2][L=1409] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1409
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1408
+[node2][L=1412] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1411 ? local L=1412
+[node2][L=1415] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1414 ? local L=1415
+[node2][L=1416] SEND     HEARTBEAT                    node2?node3
+[node2][L=1417] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1416
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1417
+[node2][L=1420] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1419 ? local L=1420
+[node2][L=1423] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1422 ? local L=1423
+[node2][L=1424] SEND     HEARTBEAT                    node2?node3
+[node2][L=1425] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1425
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1424
+[node2][L=1428] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1427 ? local L=1428
+[node2][L=1431] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1430 ? local L=1431
+[node2][L=1432] SEND     HEARTBEAT                    node2?node3
+[node2][L=1433] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1432
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1433
+[node2][L=1436] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1435 ? local L=1436
+[node2][L=1439] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1438 ? local L=1439
+[node2][L=1440] SEND     HEARTBEAT                    node2?node3
+[node2][L=1441] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1441
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1440
+[node2][L=1444] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1443 ? local L=1444
+[node2][L=1447] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1446 ? local L=1447
+[node2][L=1448] SEND     HEARTBEAT                    node2?node3
+[node2][L=1449] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1448
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1449
+[node2][L=1452] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1451 ? local L=1452
+[node2][L=1455] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1454 ? local L=1455
+[node2][L=1456] SEND     HEARTBEAT                    node2?node3
+[node2][L=1457] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1457
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1456
+[node2][L=1460] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1459 ? local L=1460
+[node2][L=1463] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1462 ? local L=1463
+[node2][L=1464] SEND     HEARTBEAT                    node2?node3
+[node2][L=1465] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1465
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1464
+[node2][L=1468] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1467 ? local L=1468
+[node2][L=1471] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1470 ? local L=1471
+[node2][L=1472] SEND     HEARTBEAT                    node2?node3
+[node2][L=1473] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1473
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1472
+[node2][L=1476] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1475 ? local L=1476
+[node2][L=1479] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1478 ? local L=1479
+[node2][L=1480] SEND     HEARTBEAT                    node2?node3
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1480
+[node2][L=1481] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1481
+[node2][L=1484] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1483 ? local L=1484
+[node2][L=1487] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1486 ? local L=1487
+[node2][L=1488] SEND     HEARTBEAT                    node2?node3
+[node2][L=1489] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1489
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1488
+[node2][L=1492] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1491 ? local L=1492
+[node2][L=1495] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1494 ? local L=1495
+[node2][L=1496] SEND     HEARTBEAT                    node2?node3
+[node2][L=1497] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1496
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1497
+[node2][L=1500] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1499 ? local L=1500
+[node2][L=1503] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1502 ? local L=1503
+[node2][L=1504] SEND     HEARTBEAT                    node2?node3
+[node2][L=1505] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1504
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1505
+[node2][L=1508] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1507 ? local L=1508
+[node2][L=1511] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1510 ? local L=1511
+[node2][L=1512] SEND     HEARTBEAT                    node2?node3
+[node2][L=1513] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1513
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1512
+[node2][L=1516] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1515 ? local L=1516
+[node2][L=1519] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1518 ? local L=1519
+[node2][L=1520] SEND     HEARTBEAT                    node2?node3
+[node2][L=1521] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1521
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1520
+[node2][L=1524] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1523 ? local L=1524
+[node2][L=1527] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1526 ? local L=1527
+[node2][L=1528] SEND     HEARTBEAT                    node2?node3
+[node2][L=1529] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1528
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1529
+[node2][L=1532] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1531 ? local L=1532
+[node2][L=1535] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1534 ? local L=1535
+[node2][L=1536] SEND     HEARTBEAT                    node2?node3
+[node2][L=1537] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1537
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1536
+[node2][L=1540] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1539 ? local L=1540
+[node2][L=1543] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1542 ? local L=1543
+[node2][L=1544] SEND     HEARTBEAT                    node2?node3
+[node2][L=1545] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1545
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1544
+[node2][L=1548] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1547 ? local L=1548
+[node2][L=1551] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1550 ? local L=1551
+[node2][L=1552] SEND     HEARTBEAT                    node2?node3
+[node2][L=1553] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1553
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1552
+[node2][L=1556] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1555 ? local L=1556
+[node2][L=1559] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1558 ? local L=1559
+[node2][L=1560] SEND     HEARTBEAT                    node2?node3
+[node2][L=1561] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1561
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1560
+[node2][L=1564] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1563 ? local L=1564
+[node2][L=1567] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1566 ? local L=1567
+[node2][L=1568] SEND     HEARTBEAT                    node2?node3
+[node2][L=1569] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1569
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1568
+[node2][L=1572] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1571 ? local L=1572
+[node2][L=1575] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1574 ? local L=1575
+[node2][L=1576] SEND     HEARTBEAT                    node2?node3
+[node2][L=1577] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1576
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1577
+[node2][L=1580] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1579 ? local L=1580
+[node2][L=1583] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1582 ? local L=1583
+[node2][L=1584] SEND     HEARTBEAT                    node2?node3
+[node2][L=1585] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1584
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1585
+[node2][L=1588] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1587 ? local L=1588
+[node2][L=1591] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1590 ? local L=1591
+[node2][L=1592] SEND     HEARTBEAT                    node2?node3
+[node2][L=1593] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1593
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1592
+[node2][L=1596] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1595 ? local L=1596
+[node2][L=1599] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1598 ? local L=1599
+[node2][L=1600] SEND     HEARTBEAT                    node2?node3
+[node2][L=1601] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1601
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1600
+[node2][L=1604] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1603 ? local L=1604
+[node2][L=1607] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1606 ? local L=1607
+[node2][L=1608] SEND     HEARTBEAT                    node2?node3
+[node2][L=1609] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1608
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1609
+[node2][L=1612] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1611 ? local L=1612
+[node2][L=1615] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1614 ? local L=1615
+[node2][L=1616] SEND     HEARTBEAT                    node2?node3
+[node2][L=1617] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1616
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1617
+[node2][L=1620] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1619 ? local L=1620
+[node2][L=1623] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1622 ? local L=1623
+[node2][L=1624] SEND     HEARTBEAT                    node2?node3
+[node2][L=1625] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1625
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1624
+[node2][L=1628] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1627 ? local L=1628
+[node2][L=1631] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1630 ? local L=1631
+[node2][L=1632] SEND     HEARTBEAT                    node2?node3
+[node2][L=1633] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1633
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1632
+[node2][L=1636] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1635 ? local L=1636
+[node2][L=1639] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1638 ? local L=1639
+[node2][L=1640] SEND     HEARTBEAT                    node2?node3
+[node2][L=1641] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1641
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1640
+[node2][L=1644] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1643 ? local L=1644
+[node2][L=1647] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1646 ? local L=1647
+[node2][L=1648] SEND     HEARTBEAT                    node2?node3
+[node2][L=1649] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1648
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1649
+[node2][L=1652] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1651 ? local L=1652
+[node2][L=1655] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1654 ? local L=1655
+[node2][L=1656] SEND     HEARTBEAT                    node2?node3
+[node2][L=1657] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1656
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1657
+[node2][L=1660] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1659 ? local L=1660
+[node2][L=1663] RECEIVE  HEARTBEAT                    node3?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node3 L=1662 ? local L=1663
+[node2][L=1664] SEND     HEARTBEAT                    node2?node3
+[node2][L=1665] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1665
+[node2][PeerConnMgr] Mensaje enviado a node3 type=HEARTBEAT L=1664
+[node2][L=1668] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1667 ? local L=1668
+[node2][L=1669] SEND     HEARTBEAT                    node2?node3
+[node2][L=1670] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1670
+[node2][PeerConnMgr] ERROR enviando mensaje a node3: Connection refused: connect
+[node2][L=1673] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1672 ? local L=1673
+[node2][L=1674] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1674
+[node2][L=1677] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1676 ? local L=1677
+[node2][L=1678] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1678
+[node2][L=1681] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1680 ? local L=1681
+[node2][L=1682] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1682
+[node2][L=1685] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1684 ? local L=1685
+[node2][L=1686] RECEIVE  ELECTION                     node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=ELECTION source=node1 L=1685 ? local L=1686
+[node2][Bully] ELECTION recibido de node1 (tenemos ID mayor)
+[node2][L=1687] SEND     ELECTION_OK                  node2?node1
+[node2][Bully] === INICIANDO ELECCIÓN ===
+[node2][PeerConnMgr] Mensaje enviado a node1 type=ELECTION_OK L=1687
+[node2][Bully] === ME PROCLAMO COORDINADOR: node2 ===
+[node2][L=1688] SEND     ELECTION_COORDINATOR         node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=ELECTION_COORDINATOR L=1688
+[node2][L=1689] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1689
+
+[node2] ALERTA DE FALLO DETECTADA
+[node2] El nodo node3 no responde desde hace 8001ms.
+[node2] Estado de node3 actualizado a DOWN.
+[node2][L=1692] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1691 ? local L=1692
+[node2][L=1693] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1693
+[node2][L=1696] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1695 ? local L=1696
+[node2][L=1697] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1697
+[node2][L=1700] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1699 ? local L=1700
+[node2][L=1701] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1701
+[node2][L=1704] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1703 ? local L=1704
+[node2][L=1705] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1705
+[node2][L=1708] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1707 ? local L=1708
+[node2][L=1709] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1709
+[node2][L=1712] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1711 ? local L=1712
+[node2][L=1713] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1713
+[node2][L=1716] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1715 ? local L=1716
+[node2][L=1717] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1717
+[node2][L=1720] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1719 ? local L=1720
+[node2][L=1721] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1721
+[node2][L=1724] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1723 ? local L=1724
+[node2][L=1725] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1725
+[node2][L=1728] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1727 ? local L=1728
+[node2][L=1729] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1729
+[node2][L=1732] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1731 ? local L=1732
+[node2][L=1733] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1733
+[node2][L=1736] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1735 ? local L=1736
+[node2][L=1737] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1737
+[node2][L=1740] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1739 ? local L=1740
+[node2][L=1741] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1741
+[node2][L=1744] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1743 ? local L=1744
+[node2][L=1745] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1745
+[node2][L=1748] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1747 ? local L=1748
+[node2][L=1749] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1749
+[node2][L=1752] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1751 ? local L=1752
+[node2][L=1753] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1753
+[node2][L=1756] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1755 ? local L=1756
+[node2][L=1757] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1757
+[node2][L=1760] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1759 ? local L=1760
+[node2][L=1761] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1761
+[node2][L=1764] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1763 ? local L=1764
+[node2][L=1765] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1765
+[node2][L=1768] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1767 ? local L=1768
+[node2][L=1769] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1769
+[node2][L=1772] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1771 ? local L=1772
+[node2][L=1773] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1773
+[node2][L=1776] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1775 ? local L=1776
+[node2][L=1777] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1777
+[node2][L=1780] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1779 ? local L=1780
+[node2][L=1781] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1781
+[node2][L=1784] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1783 ? local L=1784
+[node2][L=1785] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1785
+[node2][L=1788] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1787 ? local L=1788
+[node2][L=1789] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1789
+[node2][L=1792] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1791 ? local L=1792
+[node2][L=1793] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1793
+[node2][L=1796] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1795 ? local L=1796
+[node2][L=1797] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1797
+[node2][L=1800] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1799 ? local L=1800
+[node2][L=1801] RECEIVE  APP                          node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=APP source=node1 L=1800 ? local L=1801
+[node2][PeerMessageHandler] Mensaje privado entregado localmente a usuarioB
+[node2][L=1802] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1802
+[node2][L=1805] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1804 ? local L=1805
+[node2][L=1806] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1806
+[node2][L=1809] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1808 ? local L=1809
+[node2][L=1810] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1810
+[node2][L=1813] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1812 ? local L=1813
+[node2][L=1814] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1814
+[node2][L=1817] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1816 ? local L=1817
+[node2][L=1818] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1818
+[node2][L=1821] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1820 ? local L=1821
+[node2][L=1822] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1822
+[node2][L=1825] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1824 ? local L=1825
+[node2][L=1826] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1826
+[node2][L=1829] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1828 ? local L=1829
+[node2][L=1830] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1830
+[node2][L=1833] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1832 ? local L=1833
+[node2][L=1834] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1834
+[node2][L=1837] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1836 ? local L=1837
+[node2][L=1838] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1838
+[node2][L=1841] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1840 ? local L=1841
+[node2][L=1842] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1842
+[node2][L=1845] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1844 ? local L=1845
+[node2][L=1846] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1846
+[node2][L=1849] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1848 ? local L=1849
+[node2][L=1850] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1850
+[node2][L=1853] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1852 ? local L=1853
+[node2][L=1854] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1854
+[node2][L=1857] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1856 ? local L=1857
+[node2][L=1858] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1858
+[node2][L=1861] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1860 ? local L=1861
+[node2][L=1862] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1862
+[node2][L=1865] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1864 ? local L=1865
+[node2][L=1866] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1866
+[node2][L=1869] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1868 ? local L=1869
+[node2][L=1870] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1870
+[node2][L=1873] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1872 ? local L=1873
+[Router] Mensaje privado entregado localmente a usuarioB
+[node2][L=1874] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1874
+[node2][L=1877] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1876 ? local L=1877
+[node2][L=1878] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1878
+[node2][L=1881] RECEIVE  USER_LOGOUT_ANNOUNCE         node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=USER_LOGOUT_ANNOUNCE source=node1 L=1880 ? local L=1881
+[node2][L=1882] RECEIVE  USER_LOGOUT_ANNOUNCE         node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=USER_LOGOUT_ANNOUNCE source=node1 L=1881 ? local L=1882
+[node2][PeerMessageHandler] Usuario usuarioA desconectado remoto en nodo node1
+[node2][PeerMessageHandler] Usuario usuarioA desconectado remoto en nodo node1
+[node2][L=1883] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1882 ? local L=1883
+[node2][L=1884] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1884
+[node2][L=1887] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1886 ? local L=1887
+[node2][L=1888] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1888
+[node2][L=1891] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1890 ? local L=1891
+[node2][L=1892] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1892
+[node2][L=1895] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1894 ? local L=1895
+[node2][L=1896] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1896
+[node2][L=1899] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1898 ? local L=1899
+[node2][L=1900] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1900
+[node2][L=1903] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1902 ? local L=1903
+[node2][L=1904] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1904
+[node2][L=1907] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1906 ? local L=1907
+[node2][L=1908] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1908
+[node2][L=1911] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1910 ? local L=1911
+[node2][L=1912] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1912
+[node2][L=1915] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1914 ? local L=1915
+[node2][L=1916] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1916
+[node2][L=1919] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1918 ? local L=1919
+[node2][L=1920] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1920
+[node2][L=1923] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1922 ? local L=1923
+[node2][L=1924] LOCAL    LOGOUT                       usuarioB@node2
+[node2][L=1925] LOCAL    LOGOUT                       usuarioB@node2
+[node2][PeerConnMgr] ERROR enviando mensaje a node3: Connection refused: connect
+[node2][PeerConnMgr] Mensaje enviado a node1 type=USER_LOGOUT_ANNOUNCE L=1924
+[node2][PeerConnMgr] Mensaje enviado a node1 type=USER_LOGOUT_ANNOUNCE L=1925
+[node2][PeerConnMgr] ERROR enviando mensaje a node3: Connection refused: connect
+[node2][L=1926] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1926
+[node2][L=1930] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1929 ? local L=1930
+[node2][L=1931] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1931
+[node2][L=1934] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1933 ? local L=1934
+[node2][L=1935] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1935
+[node2][L=1938] RECEIVE  HEARTBEAT                    node1?node2
+[node2][PeerMessageHandler] Mensaje recibido: type=HEARTBEAT source=node1 L=1937 ? local L=1938
+[node2][L=1939] SEND     HEARTBEAT                    node2?node1
+[node2][PeerConnMgr] Mensaje enviado a node1 type=HEARTBEAT L=1939
+
+[node2] ALERTA DE FALLO DETECTADA
+[node2] El nodo node3 no responde desde hace 6935ms.
+[node2] Estado de node3 actualizado a DOWN.
