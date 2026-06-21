@@ -113,6 +113,8 @@ public enum NodeMessageType {
      */
     HEARTBEAT_ACK,
 
+    APP, // Mensaje de aplicación con payload (como PaqueteMensaje) entre nodos.
+
     /**
      * Mensaje genérico de error entre nodos.
      */

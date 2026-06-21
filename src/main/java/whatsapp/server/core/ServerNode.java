@@ -81,6 +81,9 @@ public class ServerNode {
                 peerWorkerPool,
                 membershipManager,
                 config.getPeerSocketTimeoutMs()
+                localSessionManager,
+                globalUserDirectory,
+                distributedGroupManager
         );
 
         this.messageRouter = new MessageRouter(

@@ -1,9 +1,13 @@
 package whatsapp.server.peer;
 
+import java.util.concurrent.ExecutorService;
+
+import whatsapp.server.directory.GlobalUserDirectory;
+import whatsapp.server.handlers.ManejadorCliente;
+import whatsapp.server.managers.DistributedGroupManager;
+import whatsapp.server.managers.LocalSessionManager;
 import whatsapp.server.membership.MembershipManager;
 import whatsapp.server.messages.NodeMessage;
-
-import java.util.concurrent.ExecutorService;
 
 /**
  * Implementación TCP real de {@link PeerTransport}.
@@ -39,13 +43,19 @@ public class TcpPeerTransport implements PeerTransport {
      * @param peerWorkerPool      pool de hilos para operaciones inter-nodo
      * @param membershipManager   membresía del nodo
      * @param peerSocketTimeoutMs timeout de socket para conexiones a peers (ms)
+     * @param localSessionManager administrador de sesiones locales (necesario para entregar mensajes a clientes)
+     * @param globalUserDirectory directorio global de usuarios (necesario para enrutamiento)
+     * @param distributedGroupManager administrador distribuido de grupos (necesario para mensajes grupales)
      */
     public TcpPeerTransport(
             String selfNodeId,
             int peerPort,
             ExecutorService peerWorkerPool,
             MembershipManager membershipManager,
-            int peerSocketTimeoutMs
+            int peerSocketTimeoutMs,
+            LocalSessionManager<ManejadorCliente> localSessionManager,
+            GlobalUserDirectory globalUserDirectory,
+            DistributedGroupManager distributedGroupManager
     ) {
         this.selfNodeId = selfNodeId;
         this.peerPort = peerPort;
@@ -59,12 +69,16 @@ public class TcpPeerTransport implements PeerTransport {
                 peerSocketTimeoutMs
         );
 
+        // Ahora pasamos los nuevos managers al PeerListener
         this.peerListener = new PeerListener(
                 peerPort,
                 selfNodeId,
                 peerWorkerPool,
                 membershipManager,
-                connectionManager
+                connectionManager,
+                localSessionManager,
+                globalUserDirectory,
+                distributedGroupManager
         );
     }
 

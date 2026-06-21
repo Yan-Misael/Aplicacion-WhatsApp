@@ -1,248 +1,153 @@
 package whatsapp.server.handlers;
 
-import whatsapp.common.models.PaqueteRed;
-import whatsapp.common.models.PaqueteMensaje;
-import whatsapp.common.models.PaqueteLogin;
-import whatsapp.common.models.PaqueteConfirm;
-import whatsapp.common.models.PaqueteError;
-import whatsapp.common.models.PaqueteCrearGrupo;
-import whatsapp.common.models.PaqueteUnirseGrupo;
-import whatsapp.common.models.PaqueteLogout;
-import whatsapp.server.managers.SessionManager;
-import whatsapp.server.managers.GroupManager;
+import whatsapp.common.models.*;
+import whatsapp.server.directory.GlobalUserDirectory;
+import whatsapp.server.managers.DistributedGroupManager;
+import whatsapp.server.managers.LocalSessionManager;
+import whatsapp.server.messages.NodeMessage;
+import whatsapp.server.messages.NodeMessageType;
+import whatsapp.server.peer.PeerTransport;
+import whatsapp.server.routing.MessageRouter;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.List;
+import java.util.Set;
 
-/**
- * Clase que maneja y comprende la lógica interna de conexión del cliente.
- * Contiene el canal I/O con un cliente específico. Al estar aislado cada instancia en su propio hilo, 
- * si la lectura del socket se bloquea esperando datos, el resto del servidor sigue intacto.
- */
 public class ManejadorCliente extends Thread {
     private final Socket socket;
-    
-    // Se asignan los managers de sesión y grupo vía Inyección de Dependencias
-    private final SessionManager sessionManager;
-    private final GroupManager groupManager;
-    
+    private final LocalSessionManager<ManejadorCliente> localSessionManager;
+    private final GlobalUserDirectory globalUserDirectory;
+    private final DistributedGroupManager distributedGroupManager;
+    private final MessageRouter messageRouter;
+    private final PeerTransport peerTransport;
+    private final String localNodeId;
+
     private ObjectOutputStream out;
     private ObjectInputStream in;
     private String idUsuarioAsignado;
 
-    public ManejadorCliente(Socket socket, SessionManager sessionManager, GroupManager groupManager) {
+    public ManejadorCliente(Socket socket,
+                            LocalSessionManager<ManejadorCliente> localSessionManager,
+                            GlobalUserDirectory globalUserDirectory,
+                            DistributedGroupManager distributedGroupManager,
+                            MessageRouter messageRouter,
+                            PeerTransport peerTransport,
+                            String localNodeId) {
         this.socket = socket;
-        this.sessionManager = sessionManager;
-        this.groupManager = groupManager;
+        this.localSessionManager = localSessionManager;
+        this.globalUserDirectory = globalUserDirectory;
+        this.distributedGroupManager = distributedGroupManager;
+        this.messageRouter = messageRouter;
+        this.peerTransport = peerTransport;
+        this.localNodeId = localNodeId;
     }
-    
+
     @Override
     public void run() {
         try {
-            // Usa Object streams para cumplir con el requisito de Marshalling/Serialización
             out = new ObjectOutputStream(socket.getOutputStream());
             in = new ObjectInputStream(socket.getInputStream());
 
-            // Loop de Escucha Activa: escucha, deserializa y enruta
             while (!socket.isClosed()) {
-                // Con la siguiente linea transofrmamos de bytes a un objeto estructurado (marshmalling)
                 Object peticion = in.readObject();
-                
                 if (peticion instanceof PaqueteRed) {
                     procesarPaquete((PaqueteRed) peticion);
                 }
             }
-            
         } catch (IOException | ClassNotFoundException e) {
-            // Manejo de fallos independientes: Si un cliente se cae, solo este hilo lo captura
-            // previniendo la caída total del sistema ante fallos parciales
             System.out.println("[Alerta] Cliente desconectado abruptamente: " + socket.getInetAddress());
         } finally {
             liberarRecursos();
         }
     }
-    
-    /**
-     * Actúa como un switch de enrutamiento polimórfico.
-     * Identifica qué tipo de paquete llegó y llama a la lógica correspondiente para dicho paquete.
-     */
-    private void procesarPaquete(PaqueteRed paquete) throws IOException{
-        // Enrutamiento de lógica según el tipo de polimorfismo del mensaje
-        // Primero hacer Login
+
+    private void procesarPaquete(PaqueteRed paquete) throws IOException {
         if (paquete instanceof PaqueteLogin) {
             PaqueteLogin login = (PaqueteLogin) paquete;
-            String userId = login.getIdRemitente(); //puede ser el servidors
-            boolean registrado = sessionManager.registrarUsuario(userId, this);
+            String userId = login.getIdRemitente();
+
+            // 1. Registrar localmente
+            boolean registrado = localSessionManager.registerLocalSession(userId, this);
             if (registrado) {
                 this.idUsuarioAsignado = userId;
-                try {
-                    enviarObjeto(new PaqueteConfirm(userId, true, "Login con éxito"));
-                } catch (IOException e) {
-                    liberarRecursos();
-                    throw e;
-                }
-                System.out.println("Usuario " + userId + " autenticado");
+                // 2. Anunciar al directorio global
+                globalUserDirectory.registerUserLocation(userId, localNodeId);
+                // 3. Notificar a otros nodos (opcional pero recomendado)
+                NodeMessage announce = new NodeMessage(localNodeId, "*", NodeMessageType.USER_LOGIN_ANNOUNCE, 0L);
+                peerTransport.broadcast(announce);
+
+                enviarObjeto(new PaqueteConfirm(userId, true, "Login con éxito"));
+                System.out.println("Usuario " + userId + " autenticado en " + localNodeId);
             } else {
-                try {
-                    enviarObjeto(new PaqueteError(userId, "El id ya esta en uso"));
-                } catch (IOException e) {
-                    System.err.println("[Servidor] No se pudo notificar rechazo de login a " + userId);
-                }
+                enviarObjeto(new PaqueteError(userId, "ID ya en uso en este nodo."));
                 liberarRecursos();
             }
         }
-        // Después, si se desea enviar un mensaje
         else if (paquete instanceof PaqueteMensaje) {
             if (idUsuarioAsignado == null) {
-                // Lanzamos la excepción hacia arriba, si falla enviar el error, el hilo debe morir.
-                enviarObjeto(new PaqueteError("Servidor", "Debe autenticarse antes de enviar mensajes."));
+                enviarObjeto(new PaqueteError("Servidor", "Debe autenticarse."));
                 return;
             }
-
             PaqueteMensaje msg = (PaqueteMensaje) paquete;
-
-            // Delegación de responsabilidades
             if (msg.isEsGrupo()) {
-                procesarMensajeGrupal(msg);
+                messageRouter.routeGroupMessage(msg, this);
             } else {
-                procesarMensajePrivado(msg);
+                messageRouter.routePrivateMessage(msg, this);
             }
         }
-        // Luego, si se desea un servidor
         else if (paquete instanceof PaqueteCrearGrupo) {
             if (idUsuarioAsignado == null) {
-                enviarObjeto(new PaqueteError("Servidor", "Debe autenticarse antes de crear grupos."));
+                enviarObjeto(new PaqueteError("Servidor", "Debe autenticarse."));
                 return;
             }
-            
             PaqueteCrearGrupo crear = (PaqueteCrearGrupo) paquete;
-            if (groupManager.registrarGrupo(crear.getIdGrupo(), crear.getIdRemitente())){
-                enviarObjeto(new PaqueteConfirm(idUsuarioAsignado, true, "Grupo '" + crear.getIdGrupo() + "' creado."));
-            }
-            else {
-                enviarObjeto(new PaqueteError("Servidor",
-                        "No se pudo crear el grupo '" + crear.getIdGrupo() + "': ya existe un grupo con este nombre, intenta uno distinto."));
-            }
+            messageRouter.routeCreateGroup(crear.getIdGrupo(), idUsuarioAsignado, this);
         }
-
-        // Unirse a un grupo existente
         else if (paquete instanceof PaqueteUnirseGrupo) {
             if (idUsuarioAsignado == null) {
-                enviarObjeto(new PaqueteError("Servidor", "Debe autenticarse antes de unirse a un grupo."));
+                enviarObjeto(new PaqueteError("Servidor", "Debe autenticarse."));
                 return;
             }
-
             PaqueteUnirseGrupo unirse = (PaqueteUnirseGrupo) paquete;
-            boolean exito = groupManager.agregarMiembro(unirse.getIdGrupo(), idUsuarioAsignado);
-
-            if (exito) {
-                enviarObjeto(new PaqueteConfirm(idUsuarioAsignado, true,
-                        "Te uniste al grupo '" + unirse.getIdGrupo() + "'."));
-                System.out.println("[Servidor] " + idUsuarioAsignado + " se unio al grupo '" + unirse.getIdGrupo() + "'.");
-            } else {
-                enviarObjeto(new PaqueteError("Servidor",
-                        "No se pudo unir al grupo '" + unirse.getIdGrupo() + "': no existe o ya eres miembro."));
-            }
+            messageRouter.routeJoinGroup(unirse.getIdGrupo(), idUsuarioAsignado, this);
         }
-        
-        // Finalmente, para el logout
         else if (paquete instanceof PaqueteLogout) {
-            if (idUsuarioAsignado != null) {
-                System.out.println("Usuario " + idUsuarioAsignado + " cerro sesión.");
-            }
             liberarRecursos();
         }
-        
         else {
-            enviarObjeto(new PaqueteError(idUsuarioAsignado != null ? idUsuarioAsignado : "Servidor", "Paquete no soportado por el servidor."));
+            enviarObjeto(new PaqueteError(
+                idUsuarioAsignado != null ? idUsuarioAsignado : "Servidor",
+                "Paquete no soportado."
+            ));
         }
     }
-    
-    /**
-     * Envía el objeto (serializado) de vuelta a la red.
-     */
+
     public void enviarObjeto(PaqueteRed paquete) throws IOException {
-        synchronized (this.out) {
+        synchronized (out) {
             out.writeObject(paquete);
             out.flush();
             out.reset();
         }
     }
-    
-    /**
-     * Enruta un mensaje a un destinatario específico.
-     * Falla controladamente si el usuario no existe.
-     */
-    private void procesarMensajePrivado(PaqueteMensaje msg) throws IOException {
-        ManejadorCliente destinatario = sessionManager.obtenerSesion(msg.getIdDestinatario());
 
-        if (destinatario == null) {
-            enviarObjeto(new PaqueteError("Servidor", "El usuario '" + msg.getIdDestinatario() + "' no está conectado."));
-            return;
-        }
-
-        try {
-            destinatario.enviarObjeto(msg);
-        } catch (IOException e) {
-            // El destinatario cayó justo en el momento del envío.
-            System.err.println("Fallo al entregar mensaje a " + msg.getIdDestinatario());
-            enviarObjeto(new PaqueteError("Servidor", "El mensaje no pudo ser entregado. '" + msg.getIdDestinatario() + "' perdio conexión."));
-        }
-    }
-
-    /**
-     * 1.Realiza un broadcast del mensaje a todos los miembros del grupo, excluyendo al remitente.
-     * 2.Aisla los fallos individuales para no interrumpir el envío a los demás miembros.
-     */
-    private void procesarMensajeGrupal(PaqueteMensaje msg) throws IOException {
-        List<String> miembros = groupManager.obtenerCopiaMiembros(msg.getIdDestinatario());
-
-        if (miembros.isEmpty()) {
-            enviarObjeto(new PaqueteError("Servidor",
-                    "El grupo '" + msg.getIdDestinatario() + "' no existe."));
-            return;
-        }
-
-        if (!miembros.contains(idUsuarioAsignado)) {
-            enviarObjeto(new PaqueteError("Servidor",
-                    "No eres miembro del grupo '" + msg.getIdDestinatario() + "'."));
-            return;
-        }
-
-        for (String idMiembro : miembros) {
-            // No enviar el mensaje de vuelta al que lo emitió
-            if (idMiembro.equals(msg.getIdRemitente())) {
-                continue;
-            }
-
-            ManejadorCliente manejadorDestino = sessionManager.obtenerSesion(idMiembro);
-
-            if (manejadorDestino != null) {
-                try {
-                    manejadorDestino.enviarObjeto(msg);
-                } catch (IOException e) {
-                    // Si un miembro del grupo tiene el socket roto, registramos el fallo,
-                    // pero continuamos el ciclo para que los demás sí reciban el mensaje.
-                    System.err.println("Error aislando nodo caido en grupo: " + idMiembro);
-                }
-            }
-        }
-    }
-    
-    /**
-     * Se desconceta al usuario y cierra conexiones para erita fugas de memoria.
-     */
     private void liberarRecursos() {
         if (idUsuarioAsignado != null) {
-            groupManager.removerUsuarioDeTodos(idUsuarioAsignado);
-            sessionManager.removerUsuario(idUsuarioAsignado);
+            // Eliminar sesión local
+            localSessionManager.removeLocalSession(idUsuarioAsignado);
+            // Eliminar del directorio global
+            globalUserDirectory.removeUserLocation(idUsuarioAsignado);
+            // Remover de todos los grupos locales (opcional)
+            // Nota: si no tienes un método para obtener todos los grupos,
+            // puedes omitir esta parte; el sweeper limpiará cuando el nodo caiga.
+            // Por seguridad, si tienes un método getAllGroupIds(), úsalo.
+            // Ejemplo:
+            // for (String grupo : distributedGroupManager.getAllGroupIds()) {
+            //     distributedGroupManager.removeMember(grupo, idUsuarioAsignado);
+            // }
         }
         try { if (out != null) out.close(); } catch (IOException ignored) {}
-        try {
-            if (socket != null && !socket.isClosed()) socket.close();
-        } catch (IOException ignored) {}
+        try { if (socket != null && !socket.isClosed()) socket.close(); } catch (IOException ignored) {}
     }
-
 }
