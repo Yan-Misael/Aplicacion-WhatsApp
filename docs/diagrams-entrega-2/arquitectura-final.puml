@@ -1,71 +1,268 @@
 @startuml
-title Modelo físico final - Arquitectura multiservidor WhatsApp distribuido
+title Modelo arquitectónico final por capas - WhatsApp distribuido
 
 skinparam shadowing false
 skinparam componentStyle rectangle
 skinparam packageStyle rectangle
+skinparam linetype ortho
 skinparam wrapWidth 180
 skinparam maxMessageSize 180
 
-actor "Cliente A\nClienteNodo" as CA
-actor "Cliente B\nClienteNodo" as CB
-actor "Cliente C\nClienteNodo" as CC
+top to bottom direction
 
-cloud "LAN / localhost para demo\n o máquinas distintas en red local" as LAN {
-
-  node "JVM 1\nServerNode node1\nclientPort=5001\npeerPort=6001" as N1 {
-    component "Servidor local de clientes" as N1Client
-    component "PeerListener :6001" as N1Peer
-    database "Estado local node1\nsesiones, directorio,\ngrupos, membresía" as N1State
-  }
-
-  node "JVM 2\nServerNode node2\nclientPort=5002\npeerPort=6002" as N2 {
-    component "Servidor local de clientes" as N2Client
-    component "PeerListener :6002" as N2Peer
-    database "Estado local node2\nsesiones, directorio,\ngrupos, membresía" as N2State
-  }
-
-  node "JVM 3\nServerNode node3\nclientPort=5003\npeerPort=6003" as N3 {
-    component "Servidor local de clientes" as N3Client
-    component "PeerListener :6003" as N3Peer
-    database "Estado local node3\nsesiones, directorio,\ngrupos, membresía" as N3State
-  }
+' =========================
+' CAPA CLIENTE
+' =========================
+package "Capa cliente" as CLIENTE #EAF3FF {
+    component "ClienteNodo" as ClienteNodo
+    component "VirtualClient\n(load test)" as VirtualClient
+    component "LoadGenerator" as LoadGenerator
 }
 
-CA --> N1Client : TCP cliente-servidor\nPaqueteRed serializable
-CB --> N2Client : TCP cliente-servidor\nPaqueteRed serializable
-CC --> N3Client : TCP cliente-servidor\nPaqueteRed serializable
+' =========================
+' PAQUETES CLIENTE-SERVIDOR
+' =========================
+package "Paquetes cliente-servidor\n(PaqueteRed)" as PAQUETES_CS #F4F9FF {
+    component "PaqueteLogin" as PaqueteLogin
+    component "PaqueteLogout" as PaqueteLogout
+    component "PaqueteMensaje" as PaqueteMensaje
+    component "PaqueteCrearGrupo" as PaqueteCrearGrupo
+    component "PaqueteUnirseGrupo" as PaqueteUnirseGrupo
+    component "PaqueteConfirm" as PaqueteConfirm
+    component "PaqueteError" as PaqueteError
+}
 
-N1Peer <--> N2Peer : TCP inter-nodo\nNodeMessage / AppMessage
-N1Peer <--> N3Peer : TCP inter-nodo\nNodeMessage / AppMessage
-N2Peer <--> N3Peer : TCP inter-nodo\nNodeMessage / AppMessage
+' =========================
+' NÚCLEO DEL NODO
+' =========================
+package "Núcleo del nodo servidor" as CORE #FFF5E6 {
+    component "ServerNode" as ServerNode
+    component "ServerNodeContext" as ServerNodeContext
+    component "NodeConfig" as NodeConfig
 
-note right of LAN
-Cada ServerNode corre como proceso/JVM independiente.
-La demo puede ejecutarse en localhost usando distintos puertos,
-pero el modelo es equivalente a máquinas distintas dentro de una LAN.
+    component "ClientListener" as ClientListener
+    component "ManejadorCliente" as ManejadorCliente
+
+    component "clientWorkerPool" as ClientPool
+    component "peerWorkerPool" as PeerPool
+    component "schedulerPool" as SchedulerPool
+    component "coordinationExecutor" as CoordinationExecutor
+}
+
+' =========================
+' SESIONES Y DIRECTORIO
+' =========================
+package "Sesiones y directorio" as SESIONES #EFFFF1 {
+    component "LocalSessionManager" as LocalSessionManager
+    component "GlobalUserDirectory" as GlobalUserDirectory
+    component "MembershipManager" as MembershipManager
+    component "NodeInfo" as NodeInfo
+    component "NodeStatus" as NodeStatus
+}
+
+' =========================
+' GRUPOS DISTRIBUIDOS
+' =========================
+package "Grupos distribuidos" as GRUPOS #EFFFF1 {
+    component "DistributedGroupManager" as DistributedGroupManager
+    component "GroupManager\n(compatibilidad entrega 1)" as GroupManager
+}
+
+' =========================
+' RUTEO DE APLICACIÓN
+' =========================
+package "Ruteo de aplicación" as ROUTING #F7ECFF {
+    component "MessageRouter" as MessageRouter
+}
+
+' =========================
+' COMUNICACIÓN INTER-NODO
+' =========================
+package "Comunicación inter-nodo\n(NodeMessage sobre TCP)" as PEER #FFECEC {
+    component "TcpPeerTransport" as TcpPeerTransport
+    component "PeerTransport" as PeerTransport
+    component "PeerListener" as PeerListener
+    component "PeerConnectionManager" as PeerConnectionManager
+    component "PeerMessageHandler" as PeerMessageHandler
+
+    component "NodeMessage" as NodeMessage
+    component "AppMessage" as AppMessage
+    component "HeartbeatMessage" as HeartbeatMessage
+    component "PeerHelloMessage" as PeerHelloMessage
+    component "PeerHelloAckMessage" as PeerHelloAckMessage
+    component "MutexRequestMessage" as MutexRequestMessage
+    component "MutexReplyMessage" as MutexReplyMessage
+    component "ElectionMessage" as ElectionMessage
+    component "UserLoginAnnounceMessage" as UserLoginAnnounceMessage
+    component "UserLogoutAnnounceMessage" as UserLogoutAnnounceMessage
+}
+
+' =========================
+' COORDINACIÓN DISTRIBUIDA
+' =========================
+package "Coordinación distribuida" as COORD #FFF0F6 {
+    component "RicartAgrawalaCoordinator" as Ricart
+    component "MutexState" as MutexState
+    component "BullyElectionCoordinator" as Bully
+}
+
+' =========================
+' TIEMPO Y OBSERVABILIDAD
+' =========================
+package "Tiempo lógico y observabilidad" as TIME #F2F2F2 {
+    component "LamportClock" as LamportClock
+    component "EventLogger" as EventLogger
+    component "EventEntry" as EventEntry
+    database "events-nodeX.log" as EventsLog
+}
+
+' =========================
+' FALLOS Y RECUPERACIÓN
+' =========================
+package "Fallos y recuperación" as FALLOS #FFFBEA {
+    component "HeartbeatEmitterTask" as HeartbeatEmitter
+    component "HeartbeatSweeperTask" as HeartbeatSweeper
+}
+
+' =========================
+' MÉTRICAS Y VALIDACIÓN
+' =========================
+package "Pruebas y métricas" as TEST #F0F0FF {
+    component "MetricsRecorder" as MetricsRecorder
+    component "MetricsChartGenerator" as MetricsChartGenerator
+    component "CoordinationLogAnalyzer" as CoordinationLogAnalyzer
+    database "loadtest-results/*.csv" as CsvMetrics
+    database "charts/*.png" as Charts
+}
+
+' =========================
+' RELACIONES PRINCIPALES
+' =========================
+
+ClienteNodo --> PAQUETES_CS : envía / recibe
+VirtualClient --> PAQUETES_CS : genera tráfico
+LoadGenerator --> VirtualClient : crea clientes concurrentes
+
+PAQUETES_CS --> ClientListener : sockets TCP cliente-servidor
+ClientListener --> ClientPool : delega conexiones
+ClientPool --> ManejadorCliente
+ManejadorCliente --> MessageRouter : despacha operaciones
+
+ServerNode --> ServerNodeContext : inicializa contexto
+ServerNode --> NodeConfig : carga configuración
+ServerNode --> ClientListener
+ServerNode --> TcpPeerTransport
+ServerNode --> SchedulerPool
+ServerNode --> CoordinationExecutor
+ServerNode --> LamportClock
+ServerNode --> EventLogger
+ServerNode --> MembershipManager
+ServerNode --> LocalSessionManager
+ServerNode --> GlobalUserDirectory
+ServerNode --> DistributedGroupManager
+ServerNode --> MessageRouter
+ServerNode --> Ricart
+ServerNode --> Bully
+
+MessageRouter --> LocalSessionManager : entrega local
+MessageRouter --> GlobalUserDirectory : resuelve ubicación remota
+MessageRouter --> DistributedGroupManager : valida grupos
+MessageRouter --> TcpPeerTransport : reenvía APP remoto
+MessageRouter --> LamportClock : tick antes de enviar
+MessageRouter --> EventLogger : registra SEND / LOCAL
+
+DistributedGroupManager --> Ricart : protege GROUP_REGISTRY
+DistributedGroupManager --> TcpPeerTransport : replica cambios de grupo
+Ricart --> MutexState
+Ricart --> LamportClock : timestamp de solicitud
+Ricart --> TcpPeerTransport : MUTEX_REQUEST / MUTEX_REPLY
+Ricart --> EventLogger : eventos de mutex
+
+Bully --> MembershipManager : consulta peers vivos
+Bully --> TcpPeerTransport : ELECTION / OK / COORDINATOR
+Bully --> EventLogger : eventos de elección
+
+TcpPeerTransport ..|> PeerTransport
+TcpPeerTransport --> PeerListener : expone peerPort
+TcpPeerTransport --> PeerConnectionManager : conecta peers
+TcpPeerTransport --> NodeMessage : serializa mensajes
+TcpPeerTransport --> LamportClock : adjunta timestamp
+TcpPeerTransport --> EventLogger : registra SEND
+
+PeerListener --> PeerPool : acepta conexiones inter-nodo
+PeerPool --> PeerMessageHandler
+PeerMessageHandler --> NodeMessage : recibe mensaje
+PeerMessageHandler --> LamportClock : update al recibir
+PeerMessageHandler --> EventLogger : registra RECEIVE
+PeerMessageHandler --> MessageRouter : despacha APP
+PeerMessageHandler --> MembershipManager : HELLO / HEARTBEAT
+PeerMessageHandler --> Ricart : MUTEX
+PeerMessageHandler --> Bully : ELECTION
+PeerMessageHandler --> GlobalUserDirectory : LOGIN / LOGOUT remoto
+
+NodeMessage <|-- AppMessage
+NodeMessage <|-- HeartbeatMessage
+NodeMessage <|-- PeerHelloMessage
+NodeMessage <|-- PeerHelloAckMessage
+NodeMessage <|-- MutexRequestMessage
+NodeMessage <|-- MutexReplyMessage
+NodeMessage <|-- ElectionMessage
+NodeMessage <|-- UserLoginAnnounceMessage
+NodeMessage <|-- UserLogoutAnnounceMessage
+
+SchedulerPool --> HeartbeatEmitter : ejecuta periódico
+SchedulerPool --> HeartbeatSweeper : ejecuta periódico
+HeartbeatEmitter --> TcpPeerTransport : envía HEARTBEAT
+HeartbeatEmitter --> EventLogger : registra actividad
+HeartbeatSweeper --> MembershipManager : marca DOWN
+HeartbeatSweeper --> GlobalUserDirectory : limpia usuarios del nodo caído
+HeartbeatSweeper --> Ricart : onNodeDown()
+HeartbeatSweeper --> Bully : startElection()
+
+MembershipManager --> NodeInfo
+MembershipManager --> NodeStatus
+MembershipManager --> EventLogger
+
+EventLogger --> EventEntry
+EventLogger --> EventsLog : persiste eventos ordenables
+
+LoadGenerator --> MetricsRecorder
+MetricsRecorder --> CsvMetrics
+MetricsChartGenerator --> Charts
+CoordinationLogAnalyzer --> EventsLog
+CoordinationLogAnalyzer --> CsvMetrics
+
+' =========================
+' NOTAS
+' =========================
+note right of CORE
+Cada ServerNode encapsula la ejecución
+de un nodo lógico independiente.
+La separación de pools evita que clientes,
+peers, coordinación y tareas periódicas
+se bloqueen entre sí.
 end note
 
-note bottom of N1
-node1.properties
-host=localhost
-clientPort=5001
-peerPort=6001
+note right of COORD
+Ricart-Agrawala protege el recurso lógico
+GROUP_REGISTRY.
+
+Bully permite elegir un nuevo coordinador
+cuando cae el líder actual.
 end note
 
-note bottom of N2
-node2.properties
-host=localhost
-clientPort=5002
-peerPort=6002
+note right of TIME
+LamportClock no mide tiempo físico.
+Ordena eventos mediante marcas lógicas
+para auditoría causal en los logs.
 end note
 
-note bottom of N3
-node3.properties
-host=localhost
-clientPort=5003
-peerPort=6003
+note bottom of FALLOS
+La recuperación es parcial:
+se detectan caídas, se limpian rutas
+y se reorganiza la coordinación.
+No hay persistencia fuerte ni recuperación
+de estado del nodo caído.
 end note
-
 
 @enduml
