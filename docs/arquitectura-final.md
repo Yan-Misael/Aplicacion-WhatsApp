@@ -34,7 +34,8 @@ La arquitectura final debe permitir demostrar:
 - tolerancia parcial a fallos;
 - continuidad de servicio ante caída de un nodo;
 - prueba de carga con métricas;
-- transparencia de ubicación para los clientes.
+- transparencia de ubicación para los clientes;
+- separación clara entre estado local y estado distribuido.
 
 ---
 
@@ -104,15 +105,37 @@ Cada cliente se conecta a un nodo específico. Los nodos se comunican entre sí 
 
 ---
 
-## Comandos esperados de ejecución
+## Ejecución esperada de nodos
 
-Cada nodo debe poder ejecutarse como un proceso/JVM independiente.
+La base técnica entregada por Persona 1 inicia cada nodo leyendo un archivo `.properties`.
+
+Comandos esperados:
 
 ~~~bash
-java whatsapp.server.ServerNode node1 5001 6001 config/node1.properties
-java whatsapp.server.ServerNode node2 5002 6002 config/node2.properties
-java whatsapp.server.ServerNode node3 5003 6003 config/node3.properties
+java whatsapp.server.core.ServerNode config/node1.properties
+java whatsapp.server.core.ServerNode config/node2.properties
+java whatsapp.server.core.ServerNode config/node3.properties
 ~~~
+
+En Maven:
+
+~~~bash
+mvn -Dexec.mainClass=whatsapp.server.core.ServerNode -Dexec.args="config/node1.properties" org.codehaus.mojo:exec-maven-plugin:3.5.1:java
+mvn -Dexec.mainClass=whatsapp.server.core.ServerNode -Dexec.args="config/node2.properties" org.codehaus.mojo:exec-maven-plugin:3.5.1:java
+mvn -Dexec.mainClass=whatsapp.server.core.ServerNode -Dexec.args="config/node3.properties" org.codehaus.mojo:exec-maven-plugin:3.5.1:java
+~~~
+
+Persona 2 puede extender el `main` para aceptar también argumentos explícitos como:
+
+~~~text
+nodeId clientPort peerPort configPath
+~~~
+
+pero no debe romper el modo actual basado en archivo de configuración.
+
+---
+
+## Ejecución esperada de clientes
 
 Los clientes deben poder conectarse a cualquier nodo:
 
@@ -121,6 +144,8 @@ java whatsapp.client.ClienteNodo localhost 5001
 java whatsapp.client.ClienteNodo localhost 5002
 java whatsapp.client.ClienteNodo localhost 5003
 ~~~
+
+La adaptación completa del cliente y de los comandos de usuario pertenece principalmente a Persona 3.
 
 ---
 
@@ -137,7 +162,25 @@ config/
 └── node3.properties
 ~~~
 
-Ejemplo para `node1`:
+### Formato de peers
+
+El formato oficial de `node.peers` será:
+
+~~~text
+nodeId@host:clientPort:peerPort
+~~~
+
+Ejemplo:
+
+~~~text
+node2@localhost:5002:6002
+~~~
+
+Se incluye `clientPort` y `peerPort` porque `NodeInfo` representa ambos puertos.
+
+---
+
+### Ejemplo: `config/node1.properties`
 
 ~~~properties
 node.id=node1
@@ -145,7 +188,61 @@ node.host=localhost
 node.clientPort=5001
 node.peerPort=6001
 
-node.peers=node2@localhost:6002,node3@localhost:6003
+node.peers=node2@localhost:5002:6002,node3@localhost:5003:6003
+
+pool.clients=64
+pool.peers=16
+pool.scheduler=4
+pool.coordination=1
+
+socket.clientTimeoutMs=30000
+socket.peerTimeoutMs=5000
+
+heartbeat.intervalMs=2000
+heartbeat.timeoutMs=6000
+
+message.retry.maxAttempts=3
+message.retry.delayMs=500
+~~~
+
+---
+
+### Ejemplo: `config/node2.properties`
+
+~~~properties
+node.id=node2
+node.host=localhost
+node.clientPort=5002
+node.peerPort=6002
+
+node.peers=node1@localhost:5001:6001,node3@localhost:5003:6003
+
+pool.clients=64
+pool.peers=16
+pool.scheduler=4
+pool.coordination=1
+
+socket.clientTimeoutMs=30000
+socket.peerTimeoutMs=5000
+
+heartbeat.intervalMs=2000
+heartbeat.timeoutMs=6000
+
+message.retry.maxAttempts=3
+message.retry.delayMs=500
+~~~
+
+---
+
+### Ejemplo: `config/node3.properties`
+
+~~~properties
+node.id=node3
+node.host=localhost
+node.clientPort=5003
+node.peerPort=6003
+
+node.peers=node1@localhost:5001:6001,node2@localhost:5002:6002
 
 pool.clients=64
 pool.peers=16
@@ -218,15 +315,77 @@ ServerNode
 
 ---
 
+## Base técnica entregada por Persona 1
+
+Persona 1 deja una base técnica inicial que inicializa la arquitectura multiservidor, pero todavía no implementa comunicación TCP real entre nodos.
+
+La base técnica incluye:
+
+- `ServerNode`;
+- `ServerNodeContext`;
+- `NodeConfig`;
+- `NodeInfo`;
+- `NodeStatus`;
+- `NodeMessage`;
+- `NodeMessageType`;
+- `PeerHelloMessage`;
+- `PeerHelloAckMessage`;
+- `MembershipManager` base;
+- `GlobalUserDirectory` base;
+- `LocalSessionManager` base;
+- `DistributedGroupManager` base;
+- `MessageRouter` base;
+- `PeerTransport`;
+- `NoOpPeerTransport`;
+- configuración `node1.properties`, `node2.properties`, `node3.properties`;
+- thread-pools inicializados por nodo.
+
+La clase clave para continuar es:
+
+~~~java
+PeerTransport
+~~~
+
+Actualmente existe una implementación temporal:
+
+~~~java
+NoOpPeerTransport
+~~~
+
+Esta implementación solo imprime logs y no envía mensajes por red.
+
+Persona 2 debe reemplazar `NoOpPeerTransport` por una implementación TCP real.
+
+Se recomienda crear:
+
+- `TcpPeerTransport`;
+- `PeerListener`;
+- `PeerConnectionManager`;
+- `PeerMessageHandler`.
+
+El objetivo es que `ServerNode` deje de usar:
+
+~~~java
+new NoOpPeerTransport(config.getNodeId())
+~~~
+
+y pase a usar una implementación TCP real.
+
+---
+
 ## Responsabilidades por componente
 
 | Componente | Responsabilidad |
 |---|---|
 | `ServerNode` | Proceso principal del nodo servidor |
+| `ServerNodeContext` | Contenedor de dependencias internas del nodo |
 | `NodeConfig` | Cargar configuración del nodo desde archivo o argumentos |
 | `NodeInfo` | Representar identidad, host, puertos y estado de un nodo |
 | `ClientAcceptor` | Escuchar conexiones de clientes en `clientPort` |
 | `ClientConnectionHandler` | Procesar mensajes provenientes de clientes locales |
+| `PeerTransport` | Contrato abstracto para transporte inter-nodo |
+| `NoOpPeerTransport` | Placeholder sin red real entregado por Persona 1 |
+| `TcpPeerTransport` | Implementación TCP real esperada de Persona 2 |
 | `PeerListener` | Escuchar mensajes o conexiones de otros nodos en `peerPort` |
 | `PeerConnectionManager` | Enviar mensajes hacia otros `ServerNode` |
 | `PeerMessageHandler` | Procesar mensajes recibidos desde nodos remotos |
@@ -505,8 +664,8 @@ Ejemplos:
 - `node1` crea `grupoX` con miembros A y B.
 - `node2` crea `grupoX` con miembros C y D.
 - `node3` recibe una actualización, pero no la otra.
-- Un usuario queda como miembro en un nodo y ausente en otro.
-- Un mensaje grupal se entrega con una membresía desactualizada.
+- un usuario queda como miembro en un nodo y ausente en otro;
+- un mensaje grupal se entrega con una membresía desactualizada.
 
 Por esto, las modificaciones de grupos deben coordinarse mediante exclusión mutua distribuida.
 
@@ -637,6 +796,41 @@ public enum NodeMessageType {
 
 ---
 
+## Mensajes que Persona 2 debe dejar funcionales
+
+Persona 2 no debe implementar todo el contrato de mensajes. Su foco es la infraestructura inter-nodo y la membresía inicial.
+
+| Mensaje | Obligatorio para Persona 2 | Motivo |
+|---|---:|---|
+| `PEER_HELLO` | Sí | Permite presentación inicial entre nodos |
+| `PEER_HELLO_ACK` | Sí | Permite confirmar que el peer fue aceptado |
+| `MEMBERSHIP_UPDATE` | Parcial | Puede quedar básico o preparado |
+| `NODE_ERROR` | Básico | Manejo mínimo de errores entre nodos |
+| `PRIVATE_MESSAGE_FORWARD` | No | Persona 3 |
+| `GROUP_MESSAGE_FORWARD` | No | Persona 3 |
+| `MUTEX_REQUEST` | No | Persona 4 |
+| `MUTEX_REPLY` | No | Persona 4 |
+| `HEARTBEAT` | No completo | Persona 5 |
+| `HEARTBEAT_ACK` | No completo | Persona 5 |
+
+---
+
+## Advertencia técnica sobre Object streams
+
+Al implementar comunicación TCP con objetos serializados, se debe evitar el bloqueo por creación simétrica de streams.
+
+Regla recomendada:
+
+~~~java
+ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+out.flush();
+ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+~~~
+
+No se debe crear primero `ObjectInputStream` en ambos extremos al mismo tiempo, porque puede producir bloqueo esperando el encabezado del stream.
+
+---
+
 ## Función principal 1: mensajería privada distribuida
 
 ### Descripción
@@ -736,7 +930,7 @@ Cada nodo debe conocer a los demás nodos mediante configuración inicial.
 Ejemplo para `node1`:
 
 ~~~properties
-node.peers=node2@localhost:6002,node3@localhost:6003
+node.peers=node2@localhost:5002:6002,node3@localhost:5003:6003
 ~~~
 
 Estados posibles:
@@ -848,54 +1042,61 @@ La diferencia entre entrega local y entrega remota queda encapsulada en `Message
 
 ---
 
-## Estructura de paquetes sugerida
+## Estructura de paquetes recomendada
+
+Se recomienda mantener una única estructura coherente para evitar duplicidad de clases.
 
 ~~~text
-src/
-└── whatsapp/
-    ├── client/
-    │   └── ClienteNodo.java
-    │
-    ├── common/
-    │   ├── models/
-    │   │   ├── PaqueteRed.java
-    │   │   ├── PaqueteLogin.java
-    │   │   ├── PaqueteMensaje.java
-    │   │   └── ...
-    │   │
-    │   └── node/
-    │       ├── NodeInfo.java
-    │       ├── NodeStatus.java
-    │       ├── NodeMessage.java
-    │       └── NodeMessageType.java
-    │
-    └── server/
-        ├── ServerNode.java
-        ├── config/
-        │   └── NodeConfig.java
-        ├── client/
-        │   ├── ClientAcceptor.java
-        │   └── ClientConnectionHandler.java
-        ├── peer/
-        │   ├── PeerListener.java
-        │   ├── PeerConnectionManager.java
-        │   └── PeerMessageHandler.java
-        ├── managers/
-        │   ├── LocalSessionManager.java
-        │   ├── GlobalUserDirectory.java
-        │   ├── DistributedGroupManager.java
-        │   └── MembershipManager.java
-        ├── routing/
-        │   └── MessageRouter.java
-        ├── time/
-        │   └── LamportClock.java
-        ├── coordination/
-        │   └── MutualExclusionManager.java
-        ├── failure/
-        │   ├── HeartbeatManager.java
-        │   └── FailureDetector.java
-        └── metrics/
-            └── MetricsCollector.java
+src/main/java/whatsapp/
+├── client/
+│   └── ClienteNodo.java
+│
+├── common/
+│   └── models/
+│       ├── PaqueteRed.java
+│       ├── PaqueteLogin.java
+│       ├── PaqueteMensaje.java
+│       └── ...
+│
+└── server/
+    ├── ServerNode.java
+    ├── ServerNodeContext.java
+    ├── config/
+    │   └── NodeConfig.java
+    ├── node/
+    │   ├── NodeInfo.java
+    │   └── NodeStatus.java
+    ├── messages/
+    │   ├── NodeMessage.java
+    │   ├── NodeMessageType.java
+    │   ├── PeerHelloMessage.java
+    │   ├── PeerHelloAckMessage.java
+    │   └── MembershipUpdateMessage.java
+    ├── membership/
+    │   └── MembershipManager.java
+    ├── directory/
+    │   └── GlobalUserDirectory.java
+    ├── managers/
+    │   ├── LocalSessionManager.java
+    │   └── DistributedGroupManager.java
+    ├── routing/
+    │   └── MessageRouter.java
+    ├── peer/
+    │   ├── PeerTransport.java
+    │   ├── NoOpPeerTransport.java
+    │   ├── TcpPeerTransport.java
+    │   ├── PeerListener.java
+    │   ├── PeerConnectionManager.java
+    │   └── PeerMessageHandler.java
+    ├── time/
+    │   └── LamportClock.java
+    ├── coordination/
+    │   └── MutualExclusionManager.java
+    ├── failure/
+    │   ├── HeartbeatManager.java
+    │   └── FailureDetector.java
+    └── metrics/
+        └── MetricsCollector.java
 ~~~
 
 ---
@@ -1047,30 +1248,39 @@ La arquitectura se considera correctamente definida si cumple:
 
 ## Handoff para Persona 2
 
-Persona 2 debe implementar la base técnica de nodos.
+Persona 2 debe implementar la base técnica de comunicación entre nodos.
 
-Debe crear o adaptar:
+Debe completar o adaptar la base entregada por Persona 1:
 
 - `ServerNode`;
 - `NodeConfig`;
 - `NodeInfo`;
 - `NodeStatus`;
+- `NodeMessage`;
+- `NodeMessageType`;
+- `MembershipManager`;
+- `PeerTransport`;
+- `NoOpPeerTransport`.
+
+Debe crear o completar:
+
+- `TcpPeerTransport`;
 - `PeerListener`;
 - `PeerConnectionManager`;
 - `PeerMessageHandler`;
-- `MembershipManager`;
-- `NodeMessage`;
-- `NodeMessageType`.
+- `MembershipUpdateMessage`, si se usará propagación explícita de membresía.
 
 Debe respetar:
 
-- no usar `new Thread(...)` por cada cliente;
+- no usar `new Thread(...)` por cada cliente o peer;
 - inicializar `clientWorkerPool`;
 - inicializar `peerWorkerPool`;
 - inicializar `schedulerPool`;
 - inicializar `coordinationExecutor`;
 - cargar configuración desde `.properties`;
-- permitir ejecutar tres nodos en paralelo.
+- permitir ejecutar tres nodos en paralelo;
+- no crear un broker central oculto;
+- no mezclar mensajes inter-nodo con el pool de clientes.
 
 Resultado esperado:
 
@@ -1078,7 +1288,9 @@ Resultado esperado:
 [node1] Peer detectado: node2
 [node1] Peer detectado: node3
 [node2] Peer detectado: node1
+[node2] Peer detectado: node3
 [node3] Peer detectado: node1
+[node3] Peer detectado: node2
 ~~~
 
 ---
@@ -1101,7 +1313,8 @@ Debe usar:
 - `LocalSessionManager`;
 - `GlobalUserDirectory`;
 - `DistributedGroupManager`;
-- `MessageRouter`.
+- `MessageRouter`;
+- transporte TCP real entregado por Persona 2.
 
 Resultado esperado:
 
@@ -1216,6 +1429,7 @@ tiempo de recuperación
 | Prometer tolerancia bizantina | Sobrealcance | Declararla fuera de alcance |
 | Reintentos sin deduplicación | Doble entrega o doble commit | Usar `messageId` |
 | No medir desde el inicio | Falta de evidencia final | Incorporar `MetricsCollector` |
+| Crear primero `ObjectInputStream` en ambos extremos | Bloqueo de conexión | Crear primero `ObjectOutputStream` y hacer `flush()` |
 
 ---
 

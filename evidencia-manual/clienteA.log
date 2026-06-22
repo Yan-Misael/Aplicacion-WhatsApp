@@ -1,0 +1,17 @@
+=== Conectado al Servidor Central ===
+
+ --- Comandos disponibles ---
+[32m /login <nombre_usuario>             * Iniciar sesión
+ /msg <destinatario> <mensaje>       * Mensaje privado
+ /creargrupo <id_grupo>              * Crear un grupo nuevo
+ /unirse <id_grupo>                  * Unirse a un grupo existente
+ /gmsg <id_grupo> <mensaje>          * Enviar mensaje al grupo
+ /salir                              * Desconectarse
+ /?                                  * Listar Comandos[0m
+
+[Sistema]: Login con éxito
+
+[Sistema]: Te uniste al grupo 'grupo1'.
+Comando no reconocido. Escribe /login, /msg, /creargrupo, /unirse, /gmsg, /salir o /?.
+Comando no reconocido. Escribe /login, /msg, /creargrupo, /unirse, /gmsg, /salir o /?.
+Cerrando cliente...

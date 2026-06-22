@@ -1,12 +1,21 @@
 package whatsapp.server.core;
 
+import whatsapp.server.clock.EventLogger;
+import whatsapp.server.clock.LamportClock;
+import whatsapp.server.directory.GlobalUserDirectory;
 import whatsapp.server.handlers.ManejadorCliente;
-import whatsapp.server.managers.SessionManager;
-import whatsapp.server.managers.GroupManager;
+import whatsapp.server.managers.DistributedGroupManager;
+import whatsapp.server.managers.LocalSessionManager;
+import whatsapp.server.membership.MembershipManager;
+import whatsapp.server.node.NodeInfo;
+import whatsapp.server.peer.NoOpPeerTransport;
+import whatsapp.server.routing.MessageRouter;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Collections;
+
 /**
  * Este código establece un servidor multi-hilo (un hilo por cliente) y prepara
  * el terreno para la sincronización de recursos y el manejo de fallos independientes.
@@ -15,27 +24,55 @@ import java.net.Socket;
 */
 public class ServidorPrincipal {
     private static final int PUERTO = 2346;
-    
+    private static final String NODE_ID = "local";
+
     public static void main(String[] args) {
-        System.out.println("=== Iniciando Servidor Central de WhatsApp ===");
-        
-        // Inicialización de los recursos compartidos.
-        // Se crea una única instancia de cada gestor y se inyecta en cada hilo (Inyección de Dependencias).
-        SessionManager sessionManager = new SessionManager();
-        GroupManager groupManager = new GroupManager();
-        
+        System.out.println("=== Iniciando Nodo Servidor de WhatsApp ===");
+
+        LocalSessionManager<ManejadorCliente> sessionManager = new LocalSessionManager<>();
+        DistributedGroupManager groupManager = new DistributedGroupManager();
+        GlobalUserDirectory globalUserDirectory = new GlobalUserDirectory();
+        NoOpPeerTransport peerTransport = new NoOpPeerTransport(NODE_ID);
+        LamportClock lamportClock = new LamportClock();
+        EventLogger eventLogger = new EventLogger(NODE_ID);
+
+        NodeInfo selfInfo = new NodeInfo(NODE_ID, "localhost", PUERTO, PUERTO + 1000);
+        MembershipManager membershipManager = new MembershipManager(selfInfo, Collections.emptyList());
+
+        MessageRouter messageRouter = new MessageRouter(
+                NODE_ID,
+                sessionManager,
+                globalUserDirectory,
+                groupManager,
+                membershipManager,
+                peerTransport,
+                lamportClock,
+                eventLogger
+        );
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            eventLogger.printSortedByLamport();
+            eventLogger.flushToFile(java.nio.file.Path.of("logs"));
+        }));
+
         try (ServerSocket serverSocket = new ServerSocket(PUERTO)) {
             System.out.println("Servidor escuchando en el puerto " + PUERTO + "...\n");
-            
-            // El hilo principal se bloquea aquí esperando nuevos clientes
+
             while (true) {
-                // Aceptación de clientes por sockets
                 Socket socketCliente = serverSocket.accept();
                 System.out.println("[Servidor] Nueva conexión establecida desde: " + socketCliente.getInetAddress());
-                
-                // Pasamos las referencias de memoria compartida al nuevo hilo
-                ManejadorCliente manejador = new ManejadorCliente(socketCliente, sessionManager, groupManager);
-                // Delegamos la conexión, posteriormente el hilo principal vuelve a escuchar el puerto inmediatamente
+
+                ManejadorCliente manejador = new ManejadorCliente(
+                        socketCliente,
+                        sessionManager,
+                        globalUserDirectory,
+                        groupManager,
+                        messageRouter,
+                        peerTransport,
+                        NODE_ID,
+                        lamportClock,
+                        eventLogger
+                );
                 manejador.start();
             }
         } catch (IOException e) {

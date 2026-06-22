@@ -1,0 +1,103 @@
+@startuml
+title Secuencia - Ricart-Agrawala protegiendo GROUP_REGISTRY
+
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam wrapWidth 180
+skinparam maxMessageSize 180
+
+actor "Cliente A" as CA
+participant "ManejadorCliente\nnode1" as MC1
+participant "DistributedGroupManager\nnode1" as DGM1
+participant "RicartAgrawalaCoordinator\nnode1" as RA1
+participant "LamportClock\nnode1" as LC1
+participant "EventLogger\nnode1" as LOG1
+participant "PeerTransport\nnode1" as PT1
+participant "PeerMessageHandler\nnode1" as PMH1
+
+participant "PeerMessageHandler\nnode2" as PMH2
+participant "RicartAgrawalaCoordinator\nnode2" as RA2
+participant "PeerTransport\nnode2" as PT2
+
+participant "PeerMessageHandler\nnode3" as PMH3
+participant "RicartAgrawalaCoordinator\nnode3" as RA3
+participant "PeerTransport\nnode3" as PT3
+
+database "GROUP_REGISTRY\nregistro distribuido de grupos" as GROUPS
+
+CA -> MC1 : PaqueteCrearGrupo(grupoX)
+MC1 -> DGM1 : createGroup(grupoX, miembrosIniciales)
+
+DGM1 -> RA1 : executeCriticalSection("GROUP_REGISTRY", operación)
+
+RA1 -> LC1 : tick()
+LC1 --> RA1 : requestTimestamp = 10
+
+RA1 -> LOG1 : logLocal("MUTEX_WANTED", L=10)
+RA1 -> RA1 : state = WANTED\npendingReplies = {node2, node3}
+
+RA1 -> PT1 : broadcast(MutexRequestMessage\nresource=GROUP_REGISTRY,\nts=10, source=node1)
+
+par Solicitud recibida por node2
+  PT1 -> PMH2 : MUTEX_REQUEST(ts=10, source=node1)
+  PMH2 -> RA2 : onRequest(node1, ts=10)
+
+  alt node2 está RELEASED o node1 tiene prioridad
+    RA2 -> PT2 : sendToNode(node1, MUTEX_REPLY)
+    PT2 -> PMH1 : MUTEX_REPLY(source=node2)
+    PMH1 -> RA1 : onReply(node2)
+    RA1 -> RA1 : pendingReplies.remove(node2)
+
+  else node2 está HELD o node2 tiene prioridad
+    RA2 -> RA2 : deferredQueue.add(node1)
+  end
+
+else Solicitud recibida por node3
+  PT1 -> PMH3 : MUTEX_REQUEST(ts=10, source=node1)
+  PMH3 -> RA3 : onRequest(node1, ts=10)
+
+  alt node3 está RELEASED o node1 tiene prioridad
+    RA3 -> PT3 : sendToNode(node1, MUTEX_REPLY)
+    PT3 -> PMH1 : MUTEX_REPLY(source=node3)
+    PMH1 -> RA1 : onReply(node3)
+    RA1 -> RA1 : pendingReplies.remove(node3)
+
+  else node3 está HELD o node3 tiene prioridad
+    RA3 -> RA3 : deferredQueue.add(node1)
+  end
+end
+
+RA1 -> RA1 : pendingReplies vacío
+RA1 -> LOG1 : logLocal("MUTEX_HELD", L)
+RA1 -> RA1 : state = HELD
+
+RA1 -> DGM1 : permiso concedido
+DGM1 -> GROUPS : crear/actualizar grupoX
+GROUPS --> DGM1 : operación aplicada
+
+DGM1 -> RA1 : releaseCriticalSection()
+
+RA1 -> RA1 : state = RELEASED
+RA1 -> LOG1 : logLocal("MUTEX_RELEASED", L)
+RA1 -> RA1 : procesar solicitudes diferidas
+
+opt node1 tenía solicitudes diferidas
+  RA1 -> PT1 : send deferred MUTEX_REPLY
+end
+
+DGM1 -> MC1 : PaqueteConfirm("Grupo creado")
+MC1 -> CA : confirmar operación
+
+note over RA1,RA3
+Regla de prioridad:
+menor timestamp de Lamport gana.
+En empate, gana el menor nodeId según el criterio implementado.
+end note
+
+note over of GROUPS
+GROUP_REGISTRY es el recurso crítico compartido.
+Crear grupos o modificar membresía requiere exclusión mutua distribuida,
+para evitar actualizaciones concurrentes inconsistentes.
+end note
+
+@enduml

@@ -1,0 +1,87 @@
+@startuml
+title Secuencia - Heartbeat, caída de coordinador y reelección Bully
+
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam wrapWidth 180
+skinparam maxMessageSize 180
+
+participant "HeartbeatEmitterTask\nnode1" as HBE1
+participant "PeerTransport\nnode1" as PT1
+participant "MembershipManager\nnode1" as MM1
+participant "HeartbeatSweeperTask\nnode1" as HBS1
+participant "RicartAgrawalaCoordinator\nnode1" as RA1
+participant "BullyElectionCoordinator\nnode1" as BULLY1
+
+participant "ServerNode node2" as N2
+participant "BullyElectionCoordinator\nnode2" as BULLY2
+
+participant "ServerNode node3\ncoordinador actual" as N3
+participant "BullyElectionCoordinator\nnode3" as BULLY3
+
+== Estado normal ==
+
+note over N3
+node3 es coordinador inicial
+por tener el mayor nodeId vivo.
+end note
+
+loop cada heartbeat.intervalMs
+  HBE1 -> PT1 : sendToNode(node3, HEARTBEAT)
+  PT1 -> N3 : HEARTBEAT
+  N3 --> PT1 : HEARTBEAT_ACK
+  PT1 -> MM1 : updateLastSeen(node3)
+end
+
+== Falla inducida ==
+
+destroy N3
+note over N3
+Se derriba node3 durante la ejecución.
+Deja de responder heartbeats.
+end note
+
+loop heartbeats posteriores
+  HBE1 -> PT1 : sendToNode(node3, HEARTBEAT)
+  PT1 -x N3 : no responde / IOException / timeout
+  PT1 -> MM1 : markSuspected(node3)
+end
+
+== Detección por timeout ==
+
+HBS1 -> MM1 : checkTimeouts(now)
+MM1 --> HBS1 : node3 supera heartbeat.timeoutMs
+
+HBS1 -> MM1 : markDown(node3)
+HBS1 -> RA1 : onNodeDown(node3)
+RA1 -> RA1 : remover node3 de pendingReplies\ny deferredQueue
+
+alt node3 era coordinador
+  HBS1 -> BULLY1 : onCoordinatorDown(node3)
+  BULLY1 -> BULLY1 : startElection()
+
+  BULLY1 -> N2 : ELECTION\n"¿hay nodo con ID mayor vivo?"
+  N2 -> BULLY2 : receiveElection(node1)
+  BULLY2 --> BULLY1 : ELECTION_OK
+
+  BULLY2 -> BULLY2 : startElection()
+  BULLY2 -x N3 : ELECTION a node3\nsin respuesta
+  BULLY2 -> BULLY2 : timeout de elección
+  BULLY2 -> BULLY2 : proclaimCoordinator(node2)
+
+  BULLY2 -> BULLY1 : ELECTION_COORDINATOR(node2)
+  BULLY1 -> BULLY1 : coordinatorId = node2
+  BULLY2 -> N2 : coordinatorId = node2
+
+else node3 no era coordinador
+  HBS1 -> MM1 : mantener coordinador actual
+end
+
+== Servicio continúa ==
+
+note over BULLY1,N2
+node1 y node2 siguen operativos.
+El sistema se reorganiza sin detener completamente el servicio.
+end note
+
+@enduml

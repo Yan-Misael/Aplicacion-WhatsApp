@@ -1,0 +1,51 @@
+@startuml
+title Registro de eventos con EventLogger y marcas de Lamport
+
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam wrapWidth 180
+skinparam maxMessageSize 180
+
+participant "Componente del nodo\nMessageRouter / PeerMessageHandler /\nRicartAgrawalaCoordinator" as Component
+participant "LamportClock" as Clock
+participant "EventLogger" as Logger
+queue "Cola concurrente\nEventEntry[]" as Queue
+database "Archivo de log\nlogs/events-nodeX.log" as File
+
+== Evento local ==
+
+Component -> Clock : tick()
+Clock --> Component : L=n
+Component -> Logger : logLocal(eventType, detalle, L=n)
+Logger -> Queue : add(EventEntry\nLOCAL, eventType, L=n)
+
+== Envío de mensaje ==
+
+Component -> Clock : tick()
+Clock --> Component : L=n+1
+Component -> Logger : logSend(eventType,\nsourceNode, targetNode, L=n+1)
+Logger -> Queue : add(EventEntry\nSEND, eventType, L=n+1)
+
+== Recepción de mensaje ==
+
+Component -> Clock : update(receivedTimestamp)
+Clock --> Component : L=max(local, received)+1
+Component -> Logger : logReceive(eventType,\nsourceNode, targetNode, L=m)
+Logger -> Queue : add(EventEntry\nRECEIVE, eventType, L=m)
+
+== Persistencia / evidencia ==
+
+Logger -> Queue : ordenar por Lamport
+Queue --> Logger : eventos ordenados
+Logger -> File : escribir eventos con L,\nnodo, tipo y detalle
+
+note right of File
+Estos logs permiten evidenciar:
+- envío y recepción de mensajes;
+- orden causal;
+- eventos de aplicación;
+- coordinación;
+- heartbeats y elección.
+end note
+
+@enduml

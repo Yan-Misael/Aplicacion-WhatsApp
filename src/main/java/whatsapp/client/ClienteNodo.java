@@ -21,7 +21,7 @@ import java.util.Scanner;
  */
 public class ClienteNodo {
     private static String HOST = "localhost";
-    private static final int PUERTO = 2346;
+    private static int PUERTO = 2346;
 
     private Socket socket;
     private ObjectOutputStream out;
@@ -75,11 +75,17 @@ public class ClienteNodo {
     public static void main(String[] args) {
         if (args.length > 0) {
             HOST = args[0];
+            if (args.length > 1) {
+                PUERTO = Integer.parseInt(args[1]);
+            }
         } else {
             Scanner sc = new Scanner(System.in);
             System.out.print("IP del servidor [localhost]: ");
             String input = sc.nextLine().trim();
             if (!input.isEmpty()) HOST = input;
+            System.out.print("Puerto del servidor [2346]: ");
+            String inputPort = sc.nextLine().trim();
+            if (!inputPort.isEmpty()) PUERTO = Integer.parseInt(inputPort);
         }
         new ClienteNodo().iniciar();
     }
@@ -90,7 +96,7 @@ public class ClienteNodo {
             out = new ObjectOutputStream(socket.getOutputStream());
             in = new ObjectInputStream(socket.getInputStream());
 
-            System.out.println("=== Conectado al Servidor Central ===");
+            System.out.println("=== Conectado al Servidor ServerNode ===");
             
             // Hilo 1: Escucha activa de red (Asíncrono)
             Thread listenerThread = new Thread(this::escucharServidor);

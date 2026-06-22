@@ -1,0 +1,56 @@
+@startuml
+title Regla de Lamport aplicada a mensajes inter-nodo
+
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam wrapWidth 180
+skinparam maxMessageSize 180
+
+participant "ServerNode node1\nProceso emisor" as N1
+participant "LamportClock\nnode1" as LC1
+participant "EventLogger\nnode1" as LOG1
+participant "PeerTransport\nnode1" as PT1
+
+participant "PeerMessageHandler\nnode2" as PMH2
+participant "LamportClock\nnode2" as LC2
+participant "EventLogger\nnode2" as LOG2
+participant "ServerNode node2\nProceso receptor" as N2
+
+== Evento local previo al envío ==
+
+N1 -> LC1 : tick()
+LC1 --> N1 : L1 = L1 + 1
+N1 -> LOG1 : logLocal("EVENTO_LOCAL", L1)
+
+== Envío de mensaje ==
+
+N1 -> LC1 : tick()
+LC1 --> N1 : Lsend = L1 + 1
+
+N1 -> LOG1 : logSend(tipo, node1 -> node2, Lsend)
+N1 -> PT1 : sendToNode(node2,\nNodeMessage.lamportTimestamp = Lsend)
+
+PT1 -> PMH2 : NodeMessage serializado por TCP\nincluye Lsend
+
+== Recepción del mensaje ==
+
+PMH2 -> LC2 : update(Lsend)
+LC2 --> PMH2 : Lrecv = max(L2, Lsend) + 1
+
+PMH2 -> LOG2 : logReceive(tipo, node1 -> node2, Lrecv)
+PMH2 -> N2 : procesar mensaje con reloj actualizado
+
+note over LC1,LC2
+Regla de Lamport:
+1. Antes de un evento local o envío: L = L + 1.
+2. Al recibir un mensaje con timestamp T:
+   L = max(L, T) + 1.
+end note
+
+note over LOG1,LOG2
+Propiedad esperada:
+si SEND(node1) ocurrió antes que RECEIVE(node2),
+entonces Lsend < Lrecv.
+end note
+
+@enduml

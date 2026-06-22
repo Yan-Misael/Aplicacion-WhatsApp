@@ -84,9 +84,9 @@ ServerNode <-> ServerNode
 Cada nodo debe poder iniciarse con una configuración propia. Ejemplo:
 
 ~~~bash
-java whatsapp.server.ServerNode node1 5001 6001 config/node1.properties
-java whatsapp.server.ServerNode node2 5002 6002 config/node2.properties
-java whatsapp.server.ServerNode node3 5003 6003 config/node3.properties
+java whatsapp.server.core.ServerNode node1 5001 6001 config/node1.properties
+java whatsapp.server.core.ServerNode node2 5002 6002 config/node2.properties
+java whatsapp.server.core.ServerNode node3 5003 6003 config/node3.properties
 ~~~
 
 ## Configuración esperada por nodo

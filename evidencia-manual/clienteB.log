@@ -1,0 +1,23 @@
+=== Conectado al Servidor Central ===
+
+ --- Comandos disponibles ---
+[32m /login <nombre_usuario>             * Iniciar sesión
+ /msg <destinatario> <mensaje>       * Mensaje privado
+ /creargrupo <id_grupo>              * Crear un grupo nuevo
+ /unirse <id_grupo>                  * Unirse a un grupo existente
+ /gmsg <id_grupo> <mensaje>          * Enviar mensaje al grupo
+ /salir                              * Desconectarse
+ /?                                  * Listar Comandos[0m
+
+[Sistema]: Login con éxito
+
+[31m[usuarioA]:[0m hola desde node1
+
+[Sistema]: Grupo 'grupo1' creado.
+
+[32m[Grupo grupo1] usuarioA:[0m hola grupo distribuido
+
+[31m[usuarioA]:[0m hola desde node1
+
+[33m[usuarioB]:[0m hola desde node1
+Cerrando cliente...

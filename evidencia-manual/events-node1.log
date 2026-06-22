@@ -1,0 +1,7 @@
+LOG DE EVENTOS ORDENADO POR LAMPORT [node1]
+SEQ   L       NODO   EVENTO   TIPO                         DETALLE
+--------------------------------------------------------------------------------
+1     L=1     [node1 ] SEND     PEER_HELLO                   node1→node2
+2     L=2     [node1 ] SEND     PEER_HELLO                   node1→node3
+3     L=3     [node1 ] SEND     HEARTBEAT                    node1→node2
+4     L=4     [node1 ] SEND     HEARTBEAT                    node1→node3

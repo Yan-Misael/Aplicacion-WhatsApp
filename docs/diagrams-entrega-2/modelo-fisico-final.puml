@@ -1,0 +1,70 @@
+@startuml
+title Modelo físico final - Arquitectura multiservidor WhatsApp distribuido
+
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam wrapWidth 180
+skinparam maxMessageSize 180
+
+actor "Cliente A\nClienteNodo" as CA
+actor "Cliente B\nClienteNodo" as CB
+actor "Cliente C\nClienteNodo" as CC
+
+cloud "LAN / localhost para demo\n o máquinas distintas en red local" as LAN {
+
+  node "JVM 1\nServerNode node1\nclientPort=5001\npeerPort=6001" as N1 {
+    component "Servidor local de clientes" as N1Client
+    component "PeerListener :6001" as N1Peer
+    database "Estado local node1\nsesiones, directorio,\ngrupos, membresía" as N1State
+  }
+
+  node "JVM 2\nServerNode node2\nclientPort=5002\npeerPort=6002" as N2 {
+    component "Servidor local de clientes" as N2Client
+    component "PeerListener :6002" as N2Peer
+    database "Estado local node2\nsesiones, directorio,\ngrupos, membresía" as N2State
+  }
+
+  node "JVM 3\nServerNode node3\nclientPort=5003\npeerPort=6003" as N3 {
+    component "Servidor local de clientes" as N3Client
+    component "PeerListener :6003" as N3Peer
+    database "Estado local node3\nsesiones, directorio,\ngrupos, membresía" as N3State
+  }
+}
+
+CA --> N1Client : TCP cliente-servidor\nPaqueteRed serializable
+CB --> N2Client : TCP cliente-servidor\nPaqueteRed serializable
+CC --> N3Client : TCP cliente-servidor\nPaqueteRed serializable
+
+N1Peer <--> N2Peer : TCP inter-nodo\nNodeMessage / AppMessage
+N1Peer <--> N3Peer : TCP inter-nodo\nNodeMessage / AppMessage
+N2Peer <--> N3Peer : TCP inter-nodo\nNodeMessage / AppMessage
+
+note right of LAN
+Cada ServerNode corre como proceso/JVM independiente.
+La demo puede ejecutarse en localhost usando distintos puertos,
+pero el modelo es equivalente a máquinas distintas dentro de una LAN.
+end note
+
+note bottom of N1
+node1.properties
+host=localhost
+clientPort=5001
+peerPort=6001
+end note
+
+note bottom of N2
+node2.properties
+host=localhost
+clientPort=5002
+peerPort=6002
+end note
+
+note bottom of N3
+node3.properties
+host=localhost
+clientPort=5003
+peerPort=6003
+end note
+
+@enduml
